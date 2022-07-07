@@ -10,53 +10,53 @@ set(DESPOT_BUILD_EXAMPLES ON CACHE BOOL "Build C++ model examples")
 set(DESPOT_BUILD_POMDPX ON CACHE BOOL "Build POMDPX example")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse2 -mfpmath=sse")
-set(CMAKE_MODULE_PATH ${CMAKE_PREFIX_PATH} "${PROJECT_SOURCE_DIR}/cmake")
+set(CMAKE_MODULE_PATH ${CMAKE_PREFIX_PATH} "cmake")
 
 include_directories(include)
 
 add_library("${PROJECT_NAME}" SHARED
-  src/interface/pomdp.cpp
-  src/interface/world.cpp
-  src/interface/belief.cpp
-  src/interface/lower_bound.cpp
-  src/interface/upper_bound.cpp
-  src/interface/default_policy.cpp
-  src/core/particle_belief.cpp
-  src/core/globals.cpp
-  src/core/builtin_lower_bounds.cpp
-  src/core/mdp.cpp
-  src/core/node.cpp
-  src/core/builtin_policy.cpp
-  src/core/pomdp_world.cpp
-  src/core/solver.cpp
-  src/core/builtin_upper_bounds.cpp
-  src/logger.cpp
-  src/planner.cpp
-  src/evaluator.cpp
-  src/pomdpx/parser/function.cpp
-  src/pomdpx/parser/parser.cpp
-  src/pomdpx/parser/variable.cpp
-  src/pomdpx/pomdpx.cpp
-  src/random_streams.cpp
-  src/plannerbase.cpp
-  src/solver/aems.cpp
-  src/solver/despot.cpp
-  src/solver/pomcp.cpp
-  src/solver/baseline_solver.cpp
-  src/util/coord.cpp
-  src/util/dirichlet.cpp
-  src/util/exec_tracker.cpp
-  src/util/floor.cpp
-  src/util/gamma.cpp
-  src/util/logging.cpp
-  src/util/random.cpp
-  src/util/seeds.cpp
-  src/util/util.cpp
-  src/util/tinyxml/tinystr.cpp
-  src/util/tinyxml/tinyxml.cpp
-  src/util/tinyxml/tinyxmlerror.cpp
-  src/util/tinyxml/tinyxmlparser.cpp
-)
+        src/interface/pomdp.cpp
+        src/interface/world.cpp
+        src/interface/belief.cpp
+        src/interface/lower_bound.cpp
+        src/interface/upper_bound.cpp
+        src/interface/default_policy.cpp
+        src/core/particle_belief.cpp
+        src/core/globals.cpp
+        src/core/builtin_lower_bounds.cpp
+        src/core/mdp.cpp
+        src/core/node.cpp
+        src/core/builtin_policy.cpp
+        src/core/pomdp_world.cpp
+        src/core/solver.cpp
+        src/core/builtin_upper_bounds.cpp
+        src/logger.cpp
+        src/planner.cpp
+        src/evaluator.cpp
+        src/pomdpx/parser/function.cpp
+        src/pomdpx/parser/parser.cpp
+        src/pomdpx/parser/variable.cpp
+        src/pomdpx/pomdpx.cpp
+        src/random_streams.cpp
+        src/plannerbase.cpp
+        src/solver/aems.cpp
+        src/solver/despot.cpp
+        src/solver/pomcp.cpp
+        src/solver/baseline_solver.cpp
+        src/util/coord.cpp
+        src/util/dirichlet.cpp
+        src/util/exec_tracker.cpp
+        src/util/floor.cpp
+        src/util/gamma.cpp
+        src/util/logging.cpp
+        src/util/random.cpp
+        src/util/seeds.cpp
+        src/util/util.cpp
+        src/util/tinyxml/tinystr.cpp
+        src/util/tinyxml/tinyxml.cpp
+        src/util/tinyxml/tinyxmlerror.cpp
+        src/util/tinyxml/tinyxmlparser.cpp
+        src/NN.cpp include/despot/NN.h src/python_boost.cpp include/despot/python_boost.h)
 target_link_libraries("${PROJECT_NAME}"
   ${TinyXML_LIBRARIES}
 )
@@ -105,3 +105,7 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/DespotConfig.cmake"
   DESTINATION "${CONFIG_INSTALL_PATH}"
 )
 
+
+#find_package(Torch REQUIRED)
+#message(STATUS "Torch_FOUND: ${Torch_FOUND}")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 
 include_directories(
-  src
+        src
 )
 
 add_executable("${PROJECT_NAME}_rock_sample"
