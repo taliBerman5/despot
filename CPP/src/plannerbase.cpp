@@ -183,7 +183,7 @@ Solver *PlannerBase::InitializeSolver(DSPOMDP *model, Belief* belief,
 		ScenarioLowerBound *lower_bound = model->CreateScenarioLowerBound(
 				lbtype, blbtype);
 
-		logi << "Created lower bound " << typeid(*lower_bound).name() << endl;
+		Loggerlogi << "Created lower bound " << typeid(*lower_bound).name() << endl;
 
 		if (solver_type == "DESPOT") {
 			string bubtype =
@@ -193,7 +193,7 @@ Solver *PlannerBase::InitializeSolver(DSPOMDP *model, Belief* belief,
 			ScenarioUpperBound *upper_bound = model->CreateScenarioUpperBound(
 					ubtype, bubtype);
 
-			logi << "Created upper bound " << typeid(*upper_bound).name()
+			Loggerlogi << "Created upper bound " << typeid(*upper_bound).name()
 					<< endl;
 
 			solver = new DESPOT(model, lower_bound, upper_bound);
@@ -205,7 +205,7 @@ Solver *PlannerBase::InitializeSolver(DSPOMDP *model, Belief* belief,
 		BeliefLowerBound *lower_bound =
 				static_cast<BeliefMDP *>(model)->CreateBeliefLowerBound(lbtype);
 
-		logi << "Created lower bound " << typeid(*lower_bound).name() << endl;
+		Loggerlogi << "Created lower bound " << typeid(*lower_bound).name() << endl;
 
 		if (solver_type == "AEMS") {
 			string ubtype =
@@ -214,7 +214,7 @@ Solver *PlannerBase::InitializeSolver(DSPOMDP *model, Belief* belief,
 					static_cast<BeliefMDP *>(model)->CreateBeliefUpperBound(
 							ubtype);
 
-			logi << "Created upper bound " << typeid(*upper_bound).name()
+			Loggerlogi << "Created upper bound " << typeid(*upper_bound).name()
 					<< endl;
 
 			solver = new AEMS(model, lower_bound, upper_bound);
@@ -225,7 +225,7 @@ Solver *PlannerBase::InitializeSolver(DSPOMDP *model, Belief* belief,
 		string ptype = options[E_PRIOR] ? options[E_PRIOR].arg : "DEFAULT";
 		POMCPPrior *prior = model->CreatePOMCPPrior(ptype);
 
-		logi << "Created POMCP prior " << typeid(*prior).name() << endl;
+		Loggerlogi << "Created POMCP prior " << typeid(*prior).name() << endl;
 
 		if (options[E_PRUNE]) {
 			prior->exploration_constant(Globals::config.pruning_constant);

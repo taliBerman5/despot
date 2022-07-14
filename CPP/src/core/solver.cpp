@@ -70,7 +70,7 @@ void Solver::BeliefUpdate(ACT_TYPE action, OBS_TYPE obs) {
 	belief_->Update(action, obs);
 	history_.Add(action, obs);
 
-	logi << "[Solver::Update] Updated belief, history and root with action "
+	Loggerlogi << "[Solver::Update] Updated belief, history and root with action "
 		<< action << ", observation " << obs
 		<< " in " << (get_time_second() - start) << "s" << endl;
 }

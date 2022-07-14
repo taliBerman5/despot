@@ -204,7 +204,7 @@ void Logger::InitRound(State* state) {
 
 	if (state) {
 		state_ = state;
-		logi << "[POMDPLogger::InitRound] Created start state." << endl;
+		Loggerlogi << "[POMDPLogger::InitRound] Created start state." << endl;
 		// Print initial state
 		if (!Globals::config.silence && out_) {
 
@@ -283,7 +283,7 @@ bool Logger::SummarizeStep(int step, int round, bool terminal, ACT_TYPE action,
 	double step_end_t = get_time_second();
 	double step_time = (step_end_t - step_start_t);
 	if (terminal) {
-		logi << "[RunStep] Time for step: actual / allocated = " << step_time
+		Loggerlogi << "[RunStep] Time for step: actual / allocated = " << step_time
 				<< " / " << EvalLog::allocated_time << endl;
 		if (!Globals::config.silence && out_)
 			*out_ << endl;
@@ -295,7 +295,7 @@ bool Logger::SummarizeStep(int step, int round, bool terminal, ACT_TYPE action,
 
 	//Record time per move
 
-	logi << "[main] Time for step: actual / allocated = " << step_time << " / "
+	Loggerlogi << "[main] Time for step: actual / allocated = " << step_time << " / "
 			<< EvalLog::allocated_time << endl;
 
 	if (!Globals::config.silence && out_)
@@ -340,9 +340,9 @@ bool Logger::SummarizeStep(int step, int round, bool terminal, ACT_TYPE action,
 		Globals::config.time_per_move = EvalLog::plan_time_ratio
 				* EvalLog::allocated_time;
 	}
-	logi << "[main] Time per move set to " << Globals::config.time_per_move
+	Loggerlogi << "[main] Time per move set to " << Globals::config.time_per_move
 			<< endl;
-	logi << "[main] Plan time ratio set to " << EvalLog::plan_time_ratio
+	Loggerlogi << "[main] Plan time ratio set to " << EvalLog::plan_time_ratio
 			<< endl;
 
 	return false;

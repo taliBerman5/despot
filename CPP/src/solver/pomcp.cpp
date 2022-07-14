@@ -108,7 +108,7 @@ ValuedAction POMCP::Search(double timeout) {
 
 	ValuedAction astar = OptimalAction(root_);
 
-	logi << "[POMCP::Search] Search statistics" << endl
+	Loggerlogi << "[POMCP::Search] Search statistics" << endl
 		<< "OptimalAction = " << astar << endl 
 		<< "# Simulations = " << root_->count() << endl
 		<< "Time: CPU / Real = " << ((clock() - start_cpu) / CLOCKS_PER_SEC) << " / " << (get_time_second() - start_real) << endl
@@ -159,7 +159,7 @@ void POMCP::BeliefUpdate(ACT_TYPE action, OBS_TYPE obs) {
 	history_.Add(action, obs);
 	belief_->Update(action, obs);
 
-	logi << "[POMCP::Update] Updated belief, history and root with action "
+	Loggerlogi << "[POMCP::Update] Updated belief, history and root with action "
 		<< action << ", observation " << obs
 		<< " in " << (get_time_second() - start) << "s" << endl;
 }
@@ -476,7 +476,7 @@ ValuedAction DPOMCP::Search(double timeout) {
 	for (int i = 0; i < particles.size(); i++)
 		model_->Free(particles[i]);
 
-	logi << "[DPOMCP::Search] Time: CPU / Real = "
+	Loggerlogi << "[DPOMCP::Search] Time: CPU / Real = "
 		<< ((clock() - start_cpu) / CLOCKS_PER_SEC) << " / "
 		<< (get_time_second() - start_real) << endl << "Tree size = "
 		<< root_->Size() << endl;
@@ -502,7 +502,7 @@ VNode* DPOMCP::ConstructTree(vector<State*>& particles, RandomStreams& streams,
 	for (int i = 0; i < particles.size(); i++)
 		particles[i]->scenario_id = i;
 
-	logi << "[DPOMCP::ConstructTree] # active particles before search = "
+	Loggerlogi << "[DPOMCP::ConstructTree] # active particles before search = "
 		<< model->NumActiveParticles() << endl;
 	double start = clock();
 	int num_sims = 0;
@@ -520,7 +520,7 @@ VNode* DPOMCP::ConstructTree(vector<State*>& particles, RandomStreams& streams,
 		}
 	}
 
-	logi << "[DPOMCP::ConstructTree] OptimalAction = " << OptimalAction(root)
+	Loggerlogi << "[DPOMCP::ConstructTree] OptimalAction = " << OptimalAction(root)
 		<< endl << "# Simulations = " << root->count() << endl
 		<< "# active particles after search = " << model->NumActiveParticles()
 		<< endl;
@@ -534,7 +534,7 @@ void DPOMCP::BeliefUpdate(ACT_TYPE action, OBS_TYPE obs) {
 	history_.Add(action, obs);
 	belief_->Update(action, obs);
 
-	logi << "[DPOMCP::Update] Updated belief, history and root with action "
+	Loggerlogi << "[DPOMCP::Update] Updated belief, history and root with action "
 		<< action << ", observation " << obs
 		<< " in " << (get_time_second() - start) << "s" << endl;
 }

@@ -153,9 +153,9 @@ void Parser::Parse(string fn) {
 	TiXmlDocument doc(file_name_.c_str());
 
 	// Load file
-	logi << "Loading file " << file_name_ << "...";
+	Loggerlogi << "Loading file " << file_name_ << "...";
 	bool loadOkay = doc.LoadFile();
-	logi << "Done [" << double(clock() - start) / CLOCKS_PER_SEC << "s]"
+	Loggerlogi << "Done [" << double(clock() - start) / CLOCKS_PER_SEC << "s]"
 		<< endl;
 
 	Ensure(loadOkay,
@@ -173,29 +173,29 @@ void Parser::Parse(string fn) {
 	ParseHorizonTag(xml_handle);
 	ParseHasTerminalTag(xml_handle);
 	ParseVariableTag(xml_handle);
-	logi << "Parsing terminal tag...";
+	Loggerlogi << "Parsing terminal tag...";
 	ParseTerminalStateTag(xml_handle);
-	logi << "Done." << endl;
-	logi << "Parsing initial belief...";
-	logi.flush();
+	Loggerlogi << "Done." << endl;
+	Loggerlogi << "Parsing initial belief...";
+	Loggerlogi.flush();
 	ParseInitialBeliefTag(xml_handle);
-	logi << "Done." << endl;
-	logi << "Parsing transitions...";
-	logi.flush();
+	Loggerlogi << "Done." << endl;
+	Loggerlogi << "Parsing transitions...";
+	Loggerlogi.flush();
 	ParseStateTransitionTag(xml_handle);
-	logi << "Done." << endl;
-	logi << "Parsing obs function...";
-	logi.flush();
+	Loggerlogi << "Done." << endl;
+	Loggerlogi << "Parsing obs function...";
+	Loggerlogi.flush();
 	ParseObsFunctionTag(xml_handle);
-	logi << "Done." << endl;
-	logi << "Parsing reward function...";
-	logi.flush();
+	Loggerlogi << "Done." << endl;
+	Loggerlogi << "Parsing reward function...";
+	Loggerlogi.flush();
 	ParseRewardFunctionTag(xml_handle);
-	logi << "Done." << endl;
+	Loggerlogi << "Done." << endl;
 	// cout << "Parsing terminal state reward" << endl;
 	// ParseTerminalStateRewardTag(xml_handle);
 	// ReadBounds();
-	logi << "Parsing done in " << double(clock() - start) / CLOCKS_PER_SEC
+	Loggerlogi << "Parsing done in " << double(clock() - start) / CLOCKS_PER_SEC
 		<< "s" << endl;
 }
 
@@ -207,7 +207,7 @@ void Parser::ParseDiscountTag(TiXmlHandle& xml_handle) {
 
 	string discount_str = e_Discount->GetText();
 	Globals::config.discount = atof(discount_str.c_str());
-	logi << "Discount = " << Globals::config.discount << endl;
+	Loggerlogi << "Discount = " << Globals::config.discount << endl;
 
 	Ensure(Globals::config.discount < 1.0 && Globals::config.discount > 0,
 		"Discount factor must be in (0, 1).", e_Discount);
@@ -221,7 +221,7 @@ void Parser::ParseHorizonTag(TiXmlHandle& xml_handle) {
 		Globals::config.sim_len = atoi(sim_len_str.c_str());
 		Globals::config.search_depth = atoi(sim_len_str.c_str());
 	}
-	logi << "Horizon = " << Globals::config.sim_len << endl;
+	Loggerlogi << "Horizon = " << Globals::config.sim_len << endl;
 }
 
 void Parser::ParseHasTerminalTag(TiXmlHandle& xml_handle) {
@@ -232,7 +232,7 @@ void Parser::ParseHasTerminalTag(TiXmlHandle& xml_handle) {
 	} else {
 		has_terminal_ = true;
 	}
-	logi << "HasTerminal = " << has_terminal_ << endl;
+	Loggerlogi << "HasTerminal = " << has_terminal_ << endl;
 }
 
 void Parser::ParseVariableTag(TiXmlHandle& xml_handle) {
@@ -443,13 +443,13 @@ TabularCPT Parser::CreateInitialBelief(TiXmlElement* e_CondProb) {
 		"In <InitialStateBelief>: Var " + name
 			+ " is not declared as a vnamePrev within the <Variable> tag.");
 
-	// logi << "Var name: " << name << endl;
+	// Loggerlogi << "Var name: " << name << endl;
 	StateVar* child = static_cast<StateVar*>(variables_[name]);
 
 	// <Parent>
 	vector<string> parent_names = Tokenize(
 		GetFirstChildText(e_CondProb, "Parent"));
-	// logi << "Parents: " << parent_names << endl;
+	// Loggerlogi << "Parents: " << parent_names << endl;
 
 	Ensure((parent_names.size() == 1 && parent_names[0] == "null"),
 		"In <InitialStateBelief>: Var " + name
@@ -458,7 +458,7 @@ TabularCPT Parser::CreateInitialBelief(TiXmlElement* e_CondProb) {
 
 	vector<NamedVar*> parents;
 	TabularCPT func(child, parents);
-	// logi << "Initialized" << endl;
+	// Loggerlogi << "Initialized" << endl;
 
 	// <Parameter>
 	TiXmlElement* e_Parameter = GetParameterElement(e_CondProb);
@@ -492,12 +492,12 @@ TabularCPT Parser::CreateInitialBelief(TiXmlElement* e_CondProb) {
 				values[i] = atof(value_tokens[i].c_str());
 			}
 		}
-		// logi << "instance " << instance << endl;
-		// logi << "values " << values << endl;
+		// Loggerlogi << "instance " << instance << endl;
+		// Loggerlogi << "values " << values << endl;
 
 		bool success = func.SetValue(instance, values);
 
-		// logi << "success " << success << endl;
+		// Loggerlogi << "success " << success << endl;
 		Ensure(success, "In <InitialStateBelief>: Value assignment failed.",
 			GetFirstChildElement(e_Entry, "Instance"));
 

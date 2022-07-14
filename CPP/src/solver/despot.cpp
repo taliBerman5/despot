@@ -231,7 +231,7 @@ ValuedAction DESPOT::Search() {
 
 	double start = get_time_second();
 	vector<State*> particles = belief_->Sample(Globals::config.num_scenarios);
-	logi << "[DESPOT::Search] Time for sampling " << particles.size()
+	Loggerlogi << "[DESPOT::Search] Time for sampling " << particles.size()
 		<< " particles: " << (get_time_second() - start) << "s" << endl;
 
 	statistics_ = SearchStatistics();
@@ -257,21 +257,21 @@ ValuedAction DESPOT::Search() {
 
 	root_ = ConstructTree(particles, streams, lower_bound_, upper_bound_,
 		model_, history_, Globals::config.time_per_move, &statistics_);
-	logi << "[DESPOT::Search] Time for tree construction: "
+	Loggerlogi << "[DESPOT::Search] Time for tree construction: "
 		<< (get_time_second() - start) << "s" << endl;
 
 	start = get_time_second();
 	root_->Free(*model_);
-	logi << "[DESPOT::Search] Time for freeing particles in search tree: "
+	Loggerlogi << "[DESPOT::Search] Time for freeing particles in search tree: "
 		<< (get_time_second() - start) << "s" << endl;
 
 	ValuedAction astar = OptimalAction(root_);
 	start = get_time_second();
 	delete root_;
 
-	logi << "[DESPOT::Search] Time for deleting tree: "
+	Loggerlogi << "[DESPOT::Search] Time for deleting tree: "
 		<< (get_time_second() - start) << "s" << endl;
-	logi << "[DESPOT::Search] Search statistics:" << endl << statistics_
+	Loggerlogi << "[DESPOT::Search] Search statistics:" << endl << statistics_
 		<< endl;
 
 	return astar;
@@ -769,12 +769,12 @@ ValuedAction DESPOT::Evaluate(VNode* root, vector<State*>& particles,
 }
 
 void DESPOT::belief(Belief* b) {
-	logi << "[DESPOT::belief] Start: Set initial belief." << endl;
+	Loggerlogi << "[DESPOT::belief] Start: Set initial belief." << endl;
 	belief_ = b;
 	history_.Truncate(0);
 
 	//lower_bound_->belief(b); // needed for POMCPScenarioLowerBound
-	logi << "[DESPOT::belief] End: Set initial belief." << endl;
+	Loggerlogi << "[DESPOT::belief] End: Set initial belief." << endl;
 }
 
 void DESPOT::BeliefUpdate(ACT_TYPE action, OBS_TYPE obs) {
@@ -785,7 +785,7 @@ void DESPOT::BeliefUpdate(ACT_TYPE action, OBS_TYPE obs) {
 
 	//lower_bound_->belief(belief_);
 
-	logi << "[Solver::Update] Updated belief, history and root with action "
+	Loggerlogi << "[Solver::Update] Updated belief, history and root with action "
 		<< action << ", observation " << obs
 		<< " in " << (get_time_second() - start) << "s" << endl;
 }

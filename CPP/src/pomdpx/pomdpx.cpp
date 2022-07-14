@@ -46,15 +46,15 @@ POMDPX::POMDPX(string params_file) {
 	parser_ = new Parser(params_file);
 
 	max_reward_action_ = parser_->ComputeMaxRewardAction();
-	logi << "Max reward action = " << max_reward_action_ << " ";
+	Loggerlogi << "Max reward action = " << max_reward_action_ << " ";
 	min_reward_action_ = parser_->ComputeMinRewardAction();
-	logi << "Min reward action = " << min_reward_action_ << " ";
-	logi << "#State / log2(#State) = " << parser_->NumStates() << " / "
+	Loggerlogi << "Min reward action = " << min_reward_action_ << " ";
+	Loggerlogi << "#State / log2(#State) = " << parser_->NumStates() << " / "
 		<< parser_->LogNumStates() << endl;
-	logi << "#InitState / log2(#InitState) = " << parser_->NumInitialStates()
+	Loggerlogi << "#InitState / log2(#InitState) = " << parser_->NumInitialStates()
 		<< " / " << parser_->LogNumInitialStates() << endl;
-	logi << "#Action = " << parser_->NumActions() << endl;
-	logi << "#Obs / log2(#Obs) = " << parser_->NumObservations() << " / "
+	Loggerlogi << "#Action = " << parser_->NumActions() << endl;
+	Loggerlogi << "#Obs / log2(#Obs) = " << parser_->NumObservations() << " / "
 		<< parser_->LogNumObservations() << endl;
 
 	is_small_ = (parser_->LogNumStates() <= 15);
@@ -173,7 +173,7 @@ public:
 					break;
 			}
 			if (updated.size() == particles_.size()) {
-				logi << "[POMDPXBelief::Update] " << i
+				Loggerlogi << "[POMDPXBelief::Update] " << i
 					<< " iterations for normal simulations" << endl;
 				break;
 			}
@@ -205,7 +205,7 @@ public:
 						break;
 				}
 				if (updated.size() == particles_.size()) {
-					logi << "[POMDPXBelief::Update] " << i
+					Loggerlogi << "[POMDPXBelief::Update] " << i
 						<< " iterations for noisy simulations" << endl;
 					break;
 				}
@@ -228,7 +228,7 @@ public:
 		// Resample if the effective number of particles is "small"
 		double num_effective_particles = 1.0 / weight_square_sum;
 		if (num_effective_particles < num_particles_ / 20.0) { // NOTE: small particles may be removed...
-			logi << "[POMDPXBelief::Update] Resampling " << num_particles_
+			Loggerlogi << "[POMDPXBelief::Update] Resampling " << num_particles_
 				<< " as effective number of particles = "
 				<< num_effective_particles << endl;
 			vector<State*> new_belief = ParticleBelief::Sample(num_particles_,
@@ -261,7 +261,7 @@ vector<State*> POMDPX::ExactInitialParticleSet() const {
 vector<State*> POMDPX::ApproxInitialParticleSet() const {
 	vector<State*> particles;
 
-	logi
+	Loggerlogi
 		<< "[POMDPX::ApproximatePrior] Drawing 1000 random particles from initial belief."
 		<< endl;
 	for (int i = 0; i < 1000; i++) {
@@ -305,7 +305,7 @@ void POMDPX::InitStates() {
 	for (int s = 0; s < states_.size(); s++)
 		assert(GetIndex(states_[s]) == s);
 
-	logi << "[POMDPX::InitState] Initialized state table in "
+	Loggerlogi << "[POMDPX::InitState] Initialized state table in "
 		<< (get_time_second() - start) << "s" << endl;
 }
 
@@ -328,7 +328,7 @@ void POMDPX::InitTransitions() {
 			}
 		}
 	}
-	logi << "[POMDPX::InitTransitions] Initialized transition table in "
+	Loggerlogi << "[POMDPX::InitTransitions] Initialized transition table in "
 		<< (get_time_second() - start) << "s." << endl;
 }
 

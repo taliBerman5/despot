@@ -34,7 +34,7 @@ bool Planner::RunStep(Solver* solver, World* world, Logger* logger) {
 	ACT_TYPE action = solver->Search().action;
 	double end_t = get_time_second();
 	double search_time = (end_t - start_t);
-	logi << "[RunStep] Time spent in " << typeid(*solver).name()
+	Loggerlogi << "[RunStep] Time spent in " << typeid(*solver).name()
 			<< "::Search(): " << search_time << endl;
 
 	OBS_TYPE obs;
@@ -42,13 +42,13 @@ bool Planner::RunStep(Solver* solver, World* world, Logger* logger) {
 	bool terminal = world->ExecuteAction(action, obs);
 	end_t = get_time_second();
 	double execute_time = (end_t - start_t);
-	logi << "[RunStep] Time spent in ExecuteAction(): " << execute_time << endl;
+	Loggerlogi << "[RunStep] Time spent in ExecuteAction(): " << execute_time << endl;
 
 	start_t = get_time_second();
 	solver->BeliefUpdate(action, obs);
 	end_t = get_time_second();
 	double update_time = (end_t - start_t);
-	logi << "[RunStep] Time spent in Update(): " << update_time << endl;
+	Loggerlogi << "[RunStep] Time spent in Update(): " << update_time << endl;
 
 	return logger->SummarizeStep(step_++, round_, terminal, action, obs,
 			step_start_t);

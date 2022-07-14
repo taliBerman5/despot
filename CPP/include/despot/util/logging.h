@@ -56,7 +56,7 @@ else despot::logging::stream(lv)
 
 #define loge LOG(despot::logging::ERROR)
 #define logw LOG(despot::logging::WARN)
-#define logi LOG(despot::logging::INFO)
+#define Loggerlogi LOG(despot::logging::INFO)
 #define logd LOG(despot::logging::DEBUG)
 #define logv LOG(despot::logging::VERBOSE)
 
