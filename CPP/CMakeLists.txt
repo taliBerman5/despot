@@ -107,7 +107,10 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/DespotConfig.cmake"
 
 
 
+# download torch library from https://pytorch.org/get-started/locally/
+# more explanation on the torch library - https://pytorch.org/cppdocs/installing.html
 #TB
+#set Torch_DIR to point on the absolute path of the library location
 set(Torch_DIR /home/lab-211/Tali/despot/CPP/libtorch/share/cmake/Torch)
 find_package(Torch REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")

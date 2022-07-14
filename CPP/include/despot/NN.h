@@ -27,7 +27,7 @@ protected:
             // Use one of many tensor manipulation functions.
             x = torch::relu(fc1->forward(x));
             x = fc2->forward(x);
-            x = torch::nn::UnflattenImpl(1, (2, nactions));
+//            x = torch::nn::UnflattenImpl(1, (2, nactions));
             return x;
         }
 
