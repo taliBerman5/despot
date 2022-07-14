@@ -1,21 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(despot)
 
-
-#TB
-#include_directories("/home/lab-211/Tali/despot/CPP/libtorch")
-#target_link_libraries(despot "/home/lab-211/Tali/despot/CPP/libtorch")
-#set(DCMAKE_PREFIX_PATH "/home/lab-211/Tali/despot/CPP/libtorch")
-#find_package(Torch REQUIRED)
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
-
-#add_executable(example-app example-app.cpp)
-#target_link_libraries(example-app "${TORCH_LIBRARIES}")
-#set_property(TARGET example-app PROPERTY CXX_STANDARD 14)
-
-
-
-
 set(BINARY_INSTALL_PATH "bin" CACHE PATH "Binary install path")
 set(LIBRARY_INSTALL_PATH "lib" CACHE PATH "Library install path")
 set(INCLUDE_INSTALL_PATH "include" CACHE PATH "Include install path")
@@ -121,13 +106,8 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/DespotConfig.cmake"
 )
 
 
-#find_package(Torch REQUIRED)
-#message(STATUS "Torch_FOUND: ${Torch_FOUND}")
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
-
 
 #TB
-#set(CMAKE_PREFIX_PATH /home/lab-211/Tali/despot/CPP/libtorch/share/cmake/Torch)
 set(Torch_DIR /home/lab-211/Tali/despot/CPP/libtorch/share/cmake/Torch)
 find_package(Torch REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
@@ -135,7 +115,3 @@ target_link_libraries("${PROJECT_NAME}"
         ${TORCH_LIBRARIES})
 #TB
 
-#add_library(libtorch SHARED IMPORTED)
-#set_target_properties(libtorch PROPERTIES IMPORTED_LOCATION /home/lab-211/Tali/despot/CPP/libtorch/lib/libtorch.so)
-#TARGET_LINK_LIBRARIES(despot libtorch)
-#TB
