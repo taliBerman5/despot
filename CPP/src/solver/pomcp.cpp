@@ -1,5 +1,5 @@
-#include <despot/solver/pomcp.h>
 #include <despot/util/logging.h>
+#include <despot/solver/pomcp.h>
 
 using namespace std;
 
@@ -84,7 +84,7 @@ ValuedAction POMCP::Search(double timeout) {
 		vector<State*> particles = belief_->Sample(1000);
 		for (int i = 0; i < particles.size(); i++) {
 			State* particle = particles[i];
-			logd << "[POMCP::Search] Starting simulation " << num_sims << endl;
+            logd << "[POMCP::Search] Starting simulation " << num_sims << endl;
 
 			Simulate(particle, root_, model_, prior_);
  
@@ -108,7 +108,7 @@ ValuedAction POMCP::Search(double timeout) {
 
 	ValuedAction astar = OptimalAction(root_);
 
-	Loggerlogi << "[POMCP::Search] Search statistics" << endl
+	logi << "[POMCP::Search] Search statistics" << endl
 		<< "OptimalAction = " << astar << endl 
 		<< "# Simulations = " << root_->count() << endl
 		<< "Time: CPU / Real = " << ((clock() - start_cpu) / CLOCKS_PER_SEC) << " / " << (get_time_second() - start_real) << endl
@@ -159,7 +159,7 @@ void POMCP::BeliefUpdate(ACT_TYPE action, OBS_TYPE obs) {
 	history_.Add(action, obs);
 	belief_->Update(action, obs);
 
-	Loggerlogi << "[POMCP::Update] Updated belief, history and root with action "
+	logi << "[POMCP::Update] Updated belief, history and root with action "
 		<< action << ", observation " << obs
 		<< " in " << (get_time_second() - start) << "s" << endl;
 }
@@ -476,7 +476,7 @@ ValuedAction DPOMCP::Search(double timeout) {
 	for (int i = 0; i < particles.size(); i++)
 		model_->Free(particles[i]);
 
-	Loggerlogi << "[DPOMCP::Search] Time: CPU / Real = "
+	logi << "[DPOMCP::Search] Time: CPU / Real = "
 		<< ((clock() - start_cpu) / CLOCKS_PER_SEC) << " / "
 		<< (get_time_second() - start_real) << endl << "Tree size = "
 		<< root_->Size() << endl;
@@ -502,7 +502,7 @@ VNode* DPOMCP::ConstructTree(vector<State*>& particles, RandomStreams& streams,
 	for (int i = 0; i < particles.size(); i++)
 		particles[i]->scenario_id = i;
 
-	Loggerlogi << "[DPOMCP::ConstructTree] # active particles before search = "
+	logi << "[DPOMCP::ConstructTree] # active particles before search = "
 		<< model->NumActiveParticles() << endl;
 	double start = clock();
 	int num_sims = 0;
@@ -520,7 +520,7 @@ VNode* DPOMCP::ConstructTree(vector<State*>& particles, RandomStreams& streams,
 		}
 	}
 
-	Loggerlogi << "[DPOMCP::ConstructTree] OptimalAction = " << OptimalAction(root)
+	logi << "[DPOMCP::ConstructTree] OptimalAction = " << OptimalAction(root)
 		<< endl << "# Simulations = " << root->count() << endl
 		<< "# active particles after search = " << model->NumActiveParticles()
 		<< endl;
@@ -534,7 +534,7 @@ void DPOMCP::BeliefUpdate(ACT_TYPE action, OBS_TYPE obs) {
 	history_.Add(action, obs);
 	belief_->Update(action, obs);
 
-	Loggerlogi << "[DPOMCP::Update] Updated belief, history and root with action "
+	logi << "[DPOMCP::Update] Updated belief, history and root with action "
 		<< action << ", observation " << obs
 		<< " in " << (get_time_second() - start) << "s" << endl;
 }

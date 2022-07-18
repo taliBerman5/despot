@@ -29,13 +29,13 @@ void Planner::EvaluationLoop(DSPOMDP *model, World* world, Belief* belief,
 		double start_t = get_time_second();
 		delete solver->belief();
 		double end_t = get_time_second();
-		Loggerlogi << "[Initializer::EvaluationLoop] Deleted old belief in "
+		logi << "[Initializer::EvaluationLoop] Deleted old belief in "
 		<< (end_t - start_t) << "s" << endl;
 
 		start_t = get_time_second();
 		belief=model->InitialBelief(world->GetCurrentState(), belief_type);
 		end_t = get_time_second();
-		Loggerlogi << "[Initializer::EvaluationLoop] Created intial belief "
+		logi << "[Initializer::EvaluationLoop] Created intial belief "
 		<< typeid(*belief).name() << " in " << (end_t - start_t) << "s" << endl;
 
 		solver->belief(belief);

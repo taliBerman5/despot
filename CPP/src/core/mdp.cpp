@@ -21,7 +21,7 @@ void MDP::ComputeOptimalPolicyUsingVI() {
 	}
 
 	clock_t start = clock();
-	Loggerlogi << "[MDP::ComputeOptimalPolicyUsingVI] Computing optimal MDP policy...";
+	logi << "[MDP::ComputeOptimalPolicyUsingVI] Computing optimal MDP policy...";
 	vector<ValuedAction> next_policy = vector<ValuedAction>(num_states);
 
 	int iter = 0;
@@ -58,7 +58,7 @@ void MDP::ComputeOptimalPolicyUsingVI() {
 		if (diff < 1E-6)
 			break;
 	}
-	Loggerlogi << "Done [" << iter << " iters, tol = " << diff << ", "
+	logi << "Done [" << iter << " iters, tol = " << diff << ", "
 		<< (double) (clock() - start) / CLOCKS_PER_SEC << "s]!" << endl;
 }
 
@@ -107,7 +107,7 @@ void MDP::ComputeBlindAlpha() {
 				break;
 			}
 		}
-		Loggerlogi << "[MDP::ComputeBlindAlpha] Tol(alpha_" << action << ") after " << iter << " iters = "
+		logi << "[MDP::ComputeBlindAlpha] Tol(alpha_" << action << ") after " << iter << " iters = "
 			<< tol << endl;
 
 		blind_alpha_[action] = cur;

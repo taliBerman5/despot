@@ -62,7 +62,7 @@ ValuedAction AEMS::Search() {
 	statistics_.final_ub = root_->upper_bound();
 	statistics_.time_search = (double) (clock() - begin) / CLOCKS_PER_SEC;
 
-	Loggerlogi << "[AEMS::Search]" << statistics_ << endl;
+	logi << "[AEMS::Search]" << statistics_ << endl;
 
 	ValuedAction astar = OptimalAction(root_);
 	//delete root_;
@@ -262,7 +262,7 @@ void AEMS::Expand(QNode* qnode, BeliefLowerBound* lb, BeliefUpperBound* ub,
 }
 
 void AEMS::BeliefUpdate(ACT_TYPE action, OBS_TYPE obs) {
-	Loggerlogi << "- Updating belief, history and root with action " << action
+	logi << "- Updating belief, history and root with action " << action
 		<< " and observation " << obs << "...";
 
 	if (reuse_) {
@@ -287,7 +287,7 @@ void AEMS::BeliefUpdate(ACT_TYPE action, OBS_TYPE obs) {
 
 	history_.Add(action, obs);
 
-	Loggerlogi << "Done!" << endl;
+	logi << "Done!" << endl;
 }
 
 void AEMS::belief(Belief* b) {
