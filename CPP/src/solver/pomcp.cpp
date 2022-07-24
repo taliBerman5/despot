@@ -62,7 +62,7 @@ POMCP::POMCP(const DSPOMDP* model, POMCPPrior* prior, Belief* belief) :
 	reuse_ = false;
 	prior_ = prior;
 	assert(prior_ != NULL);
-    NN().init_model();
+    NN().init_model(); //TB
 }
 
 void POMCP::reuse(bool r) {

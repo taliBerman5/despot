@@ -25,9 +25,8 @@ public:
             // Use one of many tensor manipulation functions.
             x = torch::relu(fc1->forward(x));
             x = fc2->forward(x);
-//            x = torch::reshape(x, [-1, 2, nactions]);
-//            x = x.view((-1, 2, nactions));  //TODO: check it is correct
-//            x = torch::nn::UnflattenImpl(1, (2, nactions));
+            std::vector<int64_t> sizes ={2, nactions};
+            x = torch::nn::Unflatten(1,sizes)(x);
             return x;
         }
 
@@ -37,17 +36,25 @@ public:
         int nactions;
     };
 
-    /**
- * output is what we predicted (v and n)
- * target is what we get
- */
+
     virtual int bsa_loss(torch::Tensor output, torch::Tensor target);
     virtual void train_model(Net model, int epoch);
     Net init_model(){
-        Net model(3, 2);
+        Net model(3, 5);
         train_model(model, 3);
         return model;
     };
+
+//    std::vector<int> get_tensor_shape(torch::Tensor& tensor)
+//    {
+//        std::vector<int> shape;
+//        int num_dimensions = get_tensor_shape(tensor).dims();
+//        for(int ii_dim=0; ii_dim<num_dimensions; ii_dim++) {
+//            shape.push_back(tensor.shape().dim_size(ii_dim));
+//        }
+//        return shape;
+//    }
+
 
 };
 
