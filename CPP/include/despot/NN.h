@@ -25,8 +25,13 @@ public:
             // Use one of many tensor manipulation functions.
             x = torch::relu(fc1->forward(x));
             x = fc2->forward(x);
-            std::vector<int64_t> sizes ={2, nactions};
-            x = torch::nn::Unflatten(1,sizes)(x);
+            x = torch::nn::Unflatten(1,std::vector<int64_t>{2, nactions})(x);
+            std::cout << "x"<< std::endl;
+            std::cout << x << std::endl;
+            std::cout << "x.select(1, 1)"<< std::endl;
+            std::cout << x.select(1, 1)<< std::endl;
+            std::cout << "************size*************" << std::endl;
+            std::cout << x.sizes() << std::endl;
             return x;
         }
 
