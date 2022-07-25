@@ -105,12 +105,14 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/DespotConfig.cmake"
   DESTINATION "${CONFIG_INSTALL_PATH}"
 )
 
+#TB
 
-
+#TORCH
 # download torch library from https://pytorch.org/get-started/locally/
 # more explanation on the torch library - https://pytorch.org/cppdocs/installing.html
-#TB
+
 #set Torch_DIR to point on the absolute path of the library location
+
 set(Torch_DIR ${CMAKE_CURRENT_LIST_DIR}/libtorch/share/cmake/Torch)
 find_package(Torch REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
@@ -119,7 +121,8 @@ target_link_libraries("${PROJECT_NAME}"
 set(CMAKE_CXX_STANDARD 14)
 
 
-
+#YAML
+# git submodule add https://github.com/jbeder/yaml-cpp third-party/yaml-cpp
 set(YAML_CPP_BUILD_TESTS OFF CACHE BOOL "disable yaml tests")
 set(YAML_CPP_BUILD_TOOLS OFF CACHE BOOL "disable yaml tools")
 set(YAML_CPP_BUILD_CONTRIB OFF CACHE BOOL "disable yaml contrib")
@@ -127,27 +130,5 @@ set(YAML_CPP_BUILD_CONTRIB OFF CACHE BOOL "disable yaml contrib")
 add_subdirectory(third-party/yaml-cpp/)
 
 
-
-#include(ExternalProject)
-#
-#ExternalProject_Add(
-#        yaml_cpp_project
-#        SOURCE_DIR "${CMAKE_SOURCE_DIR}/third-party/yaml-cpp/"
-#        INSTALL_DIR "${CMAKE_BINARY_DIR}/prefix"
-#        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
-#)
-#
-#add_library(yaml-cpp UNKNOWN IMPORTED)
-#set_target_properties(gmock PROPERTIES
-#        IMPORTED_LOCATION ${PROJECT_BINARY_DIR}/prefix/lib/${CMAKE_STATIC_LIBRARY_PREFIX}yaml-cpp${CMAKE_STATIC_LIBRARY_SUFFIX}
-#        )
-#
-#include_directories(SYSTEM "${PROJECT_BINARY_DIR}/prefix/include")
-#
-#add_dependencies(playground yaml_cpp_project)
-#
-#target_link_libraries(playground
-#        yaml-cpp
-#        )
 #TB
 
