@@ -22,8 +22,8 @@ int NN::bsa_loss(torch::Tensor output, torch::Tensor target) {  //TODO
     torch::Tensor neff = 1/(1/n + 1/ss);
     torch::Tensor alpha = mean * neff;
     torch::Tensor beta = neff - alpha;
-    return torch::mean(torch::beta::Beta(alpha, beta));
-
+//    return torch::mean(torch::beta::Beta(alpha, beta));
+    return -1;
 }
 
 torch::Tensor log_prob(torch::Tensor x, const torch::Tensor &value) {

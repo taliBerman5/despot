@@ -62,7 +62,7 @@ POMCP::POMCP(const DSPOMDP* model, POMCPPrior* prior, Belief* belief) :
 	reuse_ = false;
 	prior_ = prior;
 	assert(prior_ != NULL);
-    NN().init_model(); //TB
+//    NN().init_model(); //TB
 }
 
 void POMCP::reuse(bool r) {
@@ -143,7 +143,7 @@ void POMCP::belief(Belief* b) {
 
 void POMCP::BeliefUpdate(ACT_TYPE action, OBS_TYPE obs) {
 	double start = get_time_second();
-//    State s = *(root_->children()[0]->children()[1]->vstar->particles()[0]); //DT
+//    State s = *(root_->children()[0]->children()[1]->vstar->particles()[0]); //TB
 	if (reuse_) {
 		VNode* node = root_->Child(action)->Child(obs);
 		root_->Child(action)->children().erase(obs);
