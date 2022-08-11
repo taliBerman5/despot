@@ -35,7 +35,7 @@ ParticleBelief::ParticleBelief(vector<State*> particles, const DSPOMDP* model,
 		while (2 * num_particles_ < 5000)
 			num_particles_ *= 2;
 		if (particles_.size() < num_particles_) {
-			Loggerlogi << "[ParticleBelief::ParticleBelief] Splitting " << particles_.size()
+			logi << "[ParticleBelief::ParticleBelief] Splitting " << particles_.size()
 				<< " particles into " << num_particles_ << " particles." << endl;
 			vector<State*> new_particles;
 			int n = num_particles_ / particles_.size();

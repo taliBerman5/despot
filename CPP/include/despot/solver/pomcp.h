@@ -5,6 +5,7 @@
 #include <despot/core/node.h>
 #include <despot/core/globals.h>
 #include <despot/NN.h>
+#include "yaml-cpp/yaml.h"
 
 namespace despot {
 

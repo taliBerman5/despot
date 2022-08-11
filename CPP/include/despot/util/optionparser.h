@@ -490,7 +490,7 @@ public:
 	 * at least 2 if single minus long options are permitted and at least 3 if they are disabled.
 	 *
 	 * @note
-	 * In the pathoLoggerlogical case of a minus within a short option group (e.g. @c -xf-z), this
+	 * In the pathological case of a minus within a short option group (e.g. @c -xf-z), this
 	 * length is incorrect, because this case will be misinterpreted as a long option and the
 	 * name will therefore extend to the string's 0-terminator or a following '=" character
 	 * if there is one. This is irrelevant for most uses of @ref name and @c namelen. If you
