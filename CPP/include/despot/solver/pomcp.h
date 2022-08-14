@@ -67,6 +67,7 @@ public:
 	const std::vector<int>& legal_actions() const;
 
 	ACT_TYPE GetAction(const State& state);
+
 };
 
 /* =============================================================================
@@ -115,6 +116,9 @@ public:
 	static ACT_TYPE UpperBoundAction(const VNode* vnode, double explore_constant);
 	static ValuedAction OptimalAction(const VNode* vnode);
 	static int Count(const VNode* vnode);
+    std::map<int64_t, int64_t>* sum_particles(std::vector<State*>& VNode); //TB
+    void loop_tree(ACT_TYPE action, OBS_TYPE obs); //TB
+    void export_csv(); //TB
 };
 
 /* =============================================================================

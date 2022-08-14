@@ -144,7 +144,8 @@ void POMCP::belief(Belief* b) {
 void POMCP::BeliefUpdate(ACT_TYPE action, OBS_TYPE obs) {
 	double start = get_time_second();
 //    State s = *(root_->children()[0]->children()[1]->vstar->particles()[0]); //TB
-	if (reuse_) {
+    std::map<int64_t, int64_t>* test = sum_particles(const_cast<vector<State *> &>(root_->particles()));
+    if (reuse_) {
 		VNode* node = root_->Child(action)->Child(obs);
 		root_->Child(action)->children().erase(obs);
 		delete root_;
@@ -312,7 +313,7 @@ double POMCP::Simulate(State* particle, VNode* vnode, const DSPOMDP* model,
 	assert(vnode != NULL);
 	if (vnode->depth() >= Globals::config.search_depth)
 		return 0;
-
+    vnode->particles_non_const().push_back(particle); //TB added particles save
 	double explore_constant = prior->exploration_constant();
 
 	ACT_TYPE action = UpperBoundAction(vnode, explore_constant);
@@ -449,6 +450,31 @@ ValuedAction POMCP::Evaluate(VNode* root, vector<State*>& particles,
 
 	return ValuedAction(UpperBoundAction(root, 0), value / particles.size());
 }
+
+std::map<int64_t, int64_t>* POMCP::sum_particles(vector<State*>& particles){ //TODO:maybe need to loop over states and add them with 0
+    std::map<int64_t, int64_t> belief;// = {};
+    for(int i=0; i < particles.size(); i++){
+        int stateId = particles[i]->state_id;
+        if (belief.find(stateId) == belief.end()) {
+            // not found
+            belief.insert(std::pair<int,int>(stateId, 1));
+        } else {
+            // found
+            belief.at(particles[i]->state_id) = belief.at(stateId) + 1;
+        }
+
+    }
+    return &belief;
+}
+
+void POMCP::loop_tree(ACT_TYPE action, OBS_TYPE obs){
+
+}
+
+void POMCP::export_csv(){
+
+}
+
 
 /* =============================================================================
  * DPOMCP class
