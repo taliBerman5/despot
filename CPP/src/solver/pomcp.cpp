@@ -143,8 +143,7 @@ void POMCP::belief(Belief* b) {
 
 void POMCP::BeliefUpdate(ACT_TYPE action, OBS_TYPE obs) {
 	double start = get_time_second();
-//    State s = *(root_->children()[0]->children()[1]->vstar->particles()[0]); //TB
-    std::map<int64_t, int64_t>* test = sum_particles(const_cast<vector<State *> &>(root_->particles()));
+    root_loop_tree(action);
     if (reuse_) {
 		VNode* node = root_->Child(action)->Child(obs);
 		root_->Child(action)->children().erase(obs);
@@ -451,8 +450,8 @@ ValuedAction POMCP::Evaluate(VNode* root, vector<State*>& particles,
 	return ValuedAction(UpperBoundAction(root, 0), value / particles.size());
 }
 
-std::map<int64_t, int64_t>* POMCP::sum_particles(vector<State*>& particles){ //TODO:maybe need to loop over states and add them with 0
-    std::map<int64_t, int64_t> belief;// = {};
+std::map<int64_t, int64_t> POMCP::sum_particles(vector<State*>& particles) { //TODO:maybe need to loop over states and add them with 0
+    std::map<int64_t, int64_t> belief;
     for(int i=0; i < particles.size(); i++){
         int stateId = particles[i]->state_id;
         if (belief.find(stateId) == belief.end()) {
@@ -464,14 +463,42 @@ std::map<int64_t, int64_t>* POMCP::sum_particles(vector<State*>& particles){ //T
         }
 
     }
-    return &belief;
+    return belief;
 }
 
-void POMCP::loop_tree(ACT_TYPE action, OBS_TYPE obs){
-
+void POMCP::root_loop_tree(ACT_TYPE selected_action) {  //TODO: remove all sub tree under the action or the observation as well?
+    for (int i = 0; i < root_->children().size(); i++) {
+        if (i == selected_action)
+            continue;
+        QNode *qnode = root_->Child(i);
+        for (int j = 0; j < qnode->children().size(); j++) {
+            VNode* vnode = qnode->Child(j);
+            loop_tree(vnode);
+        }
+    }
 }
 
-void POMCP::export_csv(){
+
+void POMCP::loop_tree(const VNode* node) {  //TODO: if the count for a belief is very low - dont consider it?
+    if(node == nullptr){
+        cout << "bye"<<endl;
+        return;
+
+    }
+
+    if(node->particles().empty() == 0){
+        std::map<int64_t, int64_t> belief = sum_particles(const_cast<vector<State *> &>(node->particles()));
+        export_to_csv(belief, node->count(), node->value());
+    }
+    for(int i=0; i < node->children().size(); i++){
+        QNode* qnode = const_cast<QNode *>(node->Child(i));
+        for(int j=0; j < qnode->children().size(); j++){
+            loop_tree(qnode->Child(j));
+        }
+    }
+}
+
+void POMCP::export_to_csv(std::map<int64_t, int64_t> belief, int count, double value) {
 
 }
 
