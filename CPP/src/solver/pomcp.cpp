@@ -472,14 +472,14 @@ void POMCP::root_loop_tree(ACT_TYPE selected_action, OBS_TYPE selected_obs) {  /
 }
 
 
-void POMCP::loop_tree(const VNode* node) {  //TODO: if the count for a belief is very low - dont consider it?
+void POMCP::loop_tree(const VNode* node) {
 
     if(node->particles().empty() == 0){ //create approximate belief state and export to csv
         std::vector<int> belief = sum_particles(const_cast<vector<State *> &>(node->particles()));
         export_to_csv(belief, node->count(), node->value());
     }
 
-    for(int action=0; action < node->children().size(); action++){
+    for(int action=0; action < node->children().size(); action++){ //continue scanning the tree
         QNode* qnode = const_cast<QNode *>(node->Child(action));
         map<OBS_TYPE, VNode*>& vnodes = qnode->children();
 
