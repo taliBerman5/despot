@@ -470,12 +470,11 @@ void POMCP::root_loop_tree(ACT_TYPE selected_action, OBS_TYPE selected_obs) {  /
     for (int action = 0; action < root_->children().size(); action++) {
         QNode *qnode = root_->Child(action);
         map<OBS_TYPE, VNode*>& vnodes = qnode->children();
-        int biggest_obs_value = vnodes.size() > 0 ? vnodes.rbegin()->first : -1;
-        for (int obs = 0; obs <= biggest_obs_value; obs++) {
-            if(action == selected_action & obs == selected_obs)
+        for(auto const& vnode : vnodes) {
+            if(action == selected_action & vnode.first == selected_obs)
                 continue;
-            if(vnodes.find(obs) != vnodes.end())
-                loop_tree(vnodes[obs]);
+
+            loop_tree(vnode.second);
         }
     }
 }
@@ -492,11 +491,9 @@ void POMCP::loop_tree(const VNode* node) {  //TODO: if the count for a belief is
         QNode* qnode = const_cast<QNode *>(node->Child(action));
         map<OBS_TYPE, VNode*>& vnodes = qnode->children();
 
-        int biggest_obs_value = vnodes.size() > 0 ? vnodes.rbegin()->first : -1;
-        for(int obs=0; obs <= biggest_obs_value; obs++){
-            if(vnodes.find(obs) != vnodes.end())
-                loop_tree(vnodes[obs]);
-        }
+        for(auto const& vnode : vnodes)
+            loop_tree(vnode.second);
+
     }
 }
 
