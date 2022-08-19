@@ -172,7 +172,7 @@ option::Option* PlannerBase::InitializeParamers(int argc, char *argv[],
 }
 
 Solver *PlannerBase::InitializeSolver(DSPOMDP *model, Belief* belief,
-		string solver_type, option::Option *options) {
+		string solver_type, option::Option *options, ofstream* myfile) {
 	Solver *solver = NULL;
 	// DESPOT or its default policy
 	if (solver_type == "DESPOT" || solver_type == "PLB") // PLB: particle lower bound
@@ -232,7 +232,7 @@ Solver *PlannerBase::InitializeSolver(DSPOMDP *model, Belief* belief,
 		}
 
 		if (solver_type == "POMCP")
-			solver = new POMCP(model, prior);
+			solver = new POMCP(model, prior, myfile);  //TB file
 		else
 			solver = new DPOMCP(model, prior);
 	} else { // Unsupported solver

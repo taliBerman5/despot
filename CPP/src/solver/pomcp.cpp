@@ -1,5 +1,6 @@
 #include <despot/util/logging.h>
 #include <despot/solver/pomcp.h>
+#include <iostream>  //TB
 
 using namespace std;
 
@@ -55,14 +56,30 @@ void UniformPOMCPPrior::ComputePreference(const State& state) {
 /* =============================================================================
  * POMCP class
  * =============================================================================*/
+    POMCP::POMCP(const DSPOMDP* model, POMCPPrior* prior, Belief* belief) :
+            Solver(model, belief),
+            root_(NULL) {
+        reuse_ = false;
+        prior_ = prior;
+        assert(prior_ != NULL);
 
-POMCP::POMCP(const DSPOMDP* model, POMCPPrior* prior, Belief* belief) :
+    }
+
+POMCP::POMCP(const DSPOMDP* model, POMCPPrior* prior, ofstream* myfile, Belief* belief) : //TB file
 	Solver(model, belief),
 	root_(NULL) {
 	reuse_ = false;
 	prior_ = prior;
 	assert(prior_ != NULL);
-//    NN().init_model(); //TB
+
+
+
+    string states_title = "";
+    for(int i = 0; i < model->NumStates(); i++)
+        states_title = states_title + "state " + to_string(i) + ",";
+    string title = states_title + "value,count\n";
+    *myfile << title;
+
 }
 
 void POMCP::reuse(bool r) {

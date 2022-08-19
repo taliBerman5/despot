@@ -94,6 +94,7 @@ protected:
 
 public:
 	POMCP(const DSPOMDP* model, POMCPPrior* prior, Belief* belief = NULL);
+	POMCP(const DSPOMDP* model, POMCPPrior* prior, std::ofstream* myfile, Belief* belief = NULL); //TB file
 	virtual ValuedAction Search();
 	virtual ValuedAction Search(double timeout);
 

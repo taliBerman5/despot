@@ -91,7 +91,13 @@ int Planner::RunEvaluation(int argc, char *argv[]) {
 	/* =========================
 	 * initialize solver
 	 * =========================*/
-	Solver *solver = InitializeSolver(model, belief, solver_type, options);
+    //TB file
+    ofstream myfile;
+    string file_name = "pomcp belief statistics";
+    myfile.open (file_name);
+    //TB file
+
+	Solver *solver = InitializeSolver(model, belief, solver_type, options, &myfile);
 
 	/* =========================
 	 * initialize logger
@@ -117,6 +123,8 @@ int Planner::RunEvaluation(int argc, char *argv[]) {
 	//logger->End();
 
 	PrintResult(num_runs, logger, main_clock_start);
+
+    myfile.close(); //TB file
 
 	return 0;
 }
