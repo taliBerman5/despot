@@ -116,10 +116,10 @@ public:
 	static ACT_TYPE UpperBoundAction(const VNode* vnode, double explore_constant);
 	static ValuedAction OptimalAction(const VNode* vnode);
 	static int Count(const VNode* vnode);
-    std::map<int64_t, int64_t> sum_particles(std::vector<State*>& VNode); //TB
+    std::vector<int> sum_particles(std::vector<State*>& VNode); //TB
     void root_loop_tree(ACT_TYPE selected_action, OBS_TYPE selected_obs); //TB
     void loop_tree(const VNode* node) ; //TB
-    void export_to_csv(std::map<int64_t, int64_t> belief, int count, double value) ; //TB
+    void export_to_csv(std::vector<int> belief, int count, double value) ; //TB
 };
 
 /* =============================================================================

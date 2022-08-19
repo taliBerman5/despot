@@ -450,19 +450,11 @@ ValuedAction POMCP::Evaluate(VNode* root, vector<State*>& particles,
 	return ValuedAction(UpperBoundAction(root, 0), value / particles.size());
 }
 
-std::map<int64_t, int64_t> POMCP::sum_particles(vector<State*>& particles) { //TODO:maybe need to loop over states and add them with 0
-    std::map<int64_t, int64_t> belief;
-    for(int i=0; i < particles.size(); i++){
-        int stateId = particles[i]->state_id;
-        if (belief.find(stateId) == belief.end()) {
-            // not found
-            belief.insert(std::pair<int,int>(stateId, 1));
-        } else {
-            // found
-            belief.at(particles[i]->state_id) = belief.at(stateId) + 1;
-        }
+std::vector<int> POMCP::sum_particles(vector<State*>& particles) {
+    std::vector<int> belief(model_->NumStates(), 0);
+    for(State* & particle : particles)
+        belief[particle->state_id] += 1;
 
-    }
     return belief;
 }
 
@@ -470,7 +462,7 @@ void POMCP::root_loop_tree(ACT_TYPE selected_action, OBS_TYPE selected_obs) {  /
     for (int action = 0; action < root_->children().size(); action++) {
         QNode *qnode = root_->Child(action);
         map<OBS_TYPE, VNode*>& vnodes = qnode->children();
-        for(auto const& vnode : vnodes) {
+        for(pair<int, VNode*> vnode : vnodes) {
             if(action == selected_action & vnode.first == selected_obs)
                 continue;
 
@@ -483,7 +475,7 @@ void POMCP::root_loop_tree(ACT_TYPE selected_action, OBS_TYPE selected_obs) {  /
 void POMCP::loop_tree(const VNode* node) {  //TODO: if the count for a belief is very low - dont consider it?
 
     if(node->particles().empty() == 0){ //create approximate belief state and export to csv
-        std::map<int64_t, int64_t> belief = sum_particles(const_cast<vector<State *> &>(node->particles()));
+        std::vector<int> belief = sum_particles(const_cast<vector<State *> &>(node->particles()));
         export_to_csv(belief, node->count(), node->value());
     }
 
@@ -497,7 +489,7 @@ void POMCP::loop_tree(const VNode* node) {  //TODO: if the count for a belief is
     }
 }
 
-void POMCP::export_to_csv(std::map<int64_t, int64_t> belief, int count, double value) {
+void POMCP::export_to_csv(std::vector<int> belief, int count, double value) {
 
 }
 
