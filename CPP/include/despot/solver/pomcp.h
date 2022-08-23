@@ -102,8 +102,7 @@ public:
 	virtual void belief(Belief* b);
 	virtual void BeliefUpdate(ACT_TYPE action, OBS_TYPE obs);
 
-	static VNode* CreateVNode(int depth, const State*, POMCPPrior* prior,
-		const DSPOMDP* model);
+	static VNode* CreateVNode(int depth, State*, POMCPPrior* prior, const DSPOMDP* model); //TB - changed state to be not const
 	static double Simulate(State* particle, VNode* root, const DSPOMDP* model,
 		POMCPPrior* prior);
 	static double Simulate(State* particle, RandomStreams& streams,
