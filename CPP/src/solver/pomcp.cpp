@@ -236,10 +236,9 @@ int POMCP::Count(const VNode* vnode) {
 	return count;
 }
 
-//TB - changed state to be not const
-VNode* POMCP::CreateVNode(int depth, State* state, POMCPPrior* prior,
-	const DSPOMDP* model) {
+VNode* POMCP::CreateVNode(int depth, State* state, POMCPPrior* prior, const DSPOMDP* model) { //TB removed const in state
 	VNode* vnode = new VNode(0, 0.0, depth);
+    vnode->particles_non_const().push_back(state); //TB added particles save
 	prior->ComputePreference(*state);
 
 	const vector<int>& preferred_actions = prior->preferred_actions();
@@ -278,7 +277,7 @@ VNode* POMCP::CreateVNode(int depth, State* state, POMCPPrior* prior,
 			qnode->value(prior->SmartValue(action));
 		}
 	}
-    vnode->particles_non_const().push_back(state); //TB added particles save
+
 	return vnode;
 }
 
@@ -329,6 +328,7 @@ double POMCP::Simulate(State* particle, VNode* vnode, const DSPOMDP* model,
 	assert(vnode != NULL);
 	if (vnode->depth() >= Globals::config.search_depth)
 		return 0;
+    vnode->particles_non_const().push_back(particle); //TB added particles save
 	double explore_constant = prior->exploration_constant();
 
 	ACT_TYPE action = UpperBoundAction(vnode, explore_constant);
