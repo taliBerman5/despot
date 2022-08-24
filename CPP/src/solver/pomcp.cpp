@@ -71,8 +71,7 @@ POMCP::POMCP(const DSPOMDP* model, POMCPPrior* prior, ofstream* myfile, Belief* 
 	reuse_ = false;
 	prior_ = prior;
 	assert(prior_ != NULL);
-
-
+    file = myfile;
 
     string states_title = "";
     for(int i = 0; i < model->NumStates(); i++)
@@ -490,9 +489,9 @@ void POMCP::root_loop_tree(ACT_TYPE selected_action, OBS_TYPE selected_obs) {  /
 
 void POMCP::loop_tree(const VNode* node) {
 
-    if(node->particles().empty() == 0){ //create approximate belief state and export to csv
+    if(node->particles().empty() == 0 && node->count() > 0){ //create approximate belief state and export to csv
         std::vector<int> belief = sum_particles(const_cast<vector<State *> &>(node->particles()));
-        export_to_csv(belief, node->count(), node->value());
+        export_to_csv(belief,node->value(),node->count());
     }
 
     for(int action=0; action < node->children().size(); action++){ //continue scanning the tree
@@ -505,8 +504,12 @@ void POMCP::loop_tree(const VNode* node) {
     }
 }
 
-void POMCP::export_to_csv(std::vector<int> belief, int count, double value) {
-
+void POMCP::export_to_csv(std::vector<int> belief, double value, int count) {
+    string row = "";
+    for(int i = 0; i < belief.size(); i++)
+        row = row + to_string(belief[i]) + ",";
+    row = row + to_string(value) + "," + to_string(count) + "\n";
+    *(this->file) << row;
 }
 
 

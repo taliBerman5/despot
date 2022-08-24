@@ -91,6 +91,7 @@ protected:
 	VNode* root_;
 	POMCPPrior* prior_;
 	bool reuse_;
+    std::ofstream* file;
 
 public:
 	POMCP(const DSPOMDP* model, POMCPPrior* prior, Belief* belief = NULL);
@@ -119,7 +120,7 @@ public:
     std::vector<int> sum_particles(std::vector<State*>& VNode); //TB
     void root_loop_tree(ACT_TYPE selected_action, OBS_TYPE selected_obs); //TB
     void loop_tree(const VNode* node) ; //TB
-    void export_to_csv(std::vector<int> belief, int count, double value) ; //TB
+    void export_to_csv(std::vector<int> belief, double value, int count) ; //TB
 };
 
 /* =============================================================================
