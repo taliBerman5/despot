@@ -286,7 +286,7 @@ double POMCP::Simulate(State* particle, RandomStreams& streams, VNode* vnode,
 	if (streams.Exhausted())
 		return 0;
 
-	double explore_constant = prior->exploration_constant();
+	double explore_constant = (model->GetMaxReward() - OptimalAction(vnode).value);//prior->exploration_constant();
 
 	ACT_TYPE action = POMCP::UpperBoundAction(vnode, explore_constant);
 	logd << *particle << endl;
@@ -329,7 +329,7 @@ double POMCP::Simulate(State* particle, VNode* vnode, const DSPOMDP* model,
 	if (vnode->depth() >= Globals::config.search_depth)
 		return 0;
     vnode->particles_non_const().push_back(particle); //TB added particles save
-	double explore_constant = prior->exploration_constant();
+	double explore_constant = (model->GetMaxReward() - OptimalAction(vnode).value);//prior->exploration_constant();
 
 	ACT_TYPE action = UpperBoundAction(vnode, explore_constant);
 
@@ -484,8 +484,8 @@ void POMCP::root_loop_tree(ACT_TYPE selected_action, OBS_TYPE selected_obs) {  /
         QNode *qnode = root_->Child(action);
         map<OBS_TYPE, VNode*>& vnodes = qnode->children();
         for(pair<int, VNode*> vnode : vnodes) {
-            if(action == selected_action & vnode.first == selected_obs)
-                continue;
+//            if(action == selected_action & vnode.first == selected_obs)
+//                continue;
 
             loop_tree(vnode.second);
         }
