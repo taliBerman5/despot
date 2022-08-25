@@ -71,12 +71,12 @@ POMCP::POMCP(const DSPOMDP* model, POMCPPrior* prior, ofstream* myfile, Belief* 
 	reuse_ = false;
 	prior_ = prior;
 	assert(prior_ != NULL);
-    file = myfile;
-
+    file_ = myfile;
+    step_ = 0;
     string states_title = "";
     for(int i = 0; i < model->NumStates(); i++)
         states_title = states_title + "state " + to_string(i) + ",";
-    string title = states_title + "value,count\n";
+    string title = states_title + "value,count,step\n";
     *myfile << title;
 
 }
@@ -144,6 +144,7 @@ ValuedAction POMCP::Search(double timeout) {
 }
 
 ValuedAction POMCP::Search() {
+        step_ += 1;
 	return Search(Globals::config.time_per_move);
 }
 
@@ -474,7 +475,12 @@ std::vector<int> POMCP::sum_particles(vector<State*>& particles) {
 }
 
 void POMCP::root_loop_tree(ACT_TYPE selected_action, OBS_TYPE selected_obs) {  //TODO: remove all sub tree under the action or the observation as well?
-    for (int action = 0; action < root_->children().size(); action++) {
+
+        //get root belief, value, count
+        std::vector<int> belief = sum_particles(const_cast<vector<State *> &>(root_->particles()));
+        export_to_csv(belief,root_->value(),root_->count());
+
+        for (int action = 0; action < root_->children().size(); action++) {
         QNode *qnode = root_->Child(action);
         map<OBS_TYPE, VNode*>& vnodes = qnode->children();
         for(pair<int, VNode*> vnode : vnodes) {
@@ -488,7 +494,6 @@ void POMCP::root_loop_tree(ACT_TYPE selected_action, OBS_TYPE selected_obs) {  /
 
 
 void POMCP::loop_tree(const VNode* node) {
-
     if(node->particles().empty() == 0 && node->count() > 0){ //create approximate belief state and export to csv
         std::vector<int> belief = sum_particles(const_cast<vector<State *> &>(node->particles()));
         export_to_csv(belief,node->value(),node->count());
@@ -508,8 +513,8 @@ void POMCP::export_to_csv(std::vector<int> belief, double value, int count) {
     string row = "";
     for(int i = 0; i < belief.size(); i++)
         row = row + to_string(belief[i]) + ",";
-    row = row + to_string(value) + "," + to_string(count) + "\n";
-    *(this->file) << row;
+    row = row + to_string(value) + "," + to_string(count) + "," + to_string(this->step_) + "\n";
+    *(this->file_) << row;
 }
 
 

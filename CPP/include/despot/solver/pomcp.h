@@ -91,7 +91,8 @@ protected:
 	VNode* root_;
 	POMCPPrior* prior_;
 	bool reuse_;
-    std::ofstream* file;
+    std::ofstream* file_;
+    int step_;
 
 public:
 	POMCP(const DSPOMDP* model, POMCPPrior* prior, Belief* belief = NULL);
