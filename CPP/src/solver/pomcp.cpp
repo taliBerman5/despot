@@ -76,7 +76,11 @@ POMCP::POMCP(const DSPOMDP* model, POMCPPrior* prior, ofstream* myfile, Belief* 
     string states_title = "";
     for(int i = 0; i < model->NumStates(); i++)
         states_title = states_title + "state " + to_string(i) + ",";
-    string title = states_title + "value,count,step\n";
+    for(int i = 0; i < model->NumActions(); i++) {
+        states_title = states_title + "action " + to_string(i) + " value,";
+        states_title = states_title + "action " + to_string(i) + " count,";
+    }
+    string title = states_title + "step\n";
     *myfile << title;
 
 }
@@ -474,18 +478,21 @@ std::vector<int> POMCP::sum_particles(vector<State*>& particles) {
     return belief;
 }
 
+
+
+
 void POMCP::root_loop_tree(ACT_TYPE selected_action, OBS_TYPE selected_obs) {  //TODO: remove all sub tree under the action or the observation as well?
 
         //get root belief, value, count
-        std::vector<int> belief = sum_particles(const_cast<vector<State *> &>(root_->particles()));
-        export_to_csv(belief,root_->value(),root_->count());
+        export_to_csv(root_);
+
 
         for (int action = 0; action < root_->children().size(); action++) {
         QNode *qnode = root_->Child(action);
         map<OBS_TYPE, VNode*>& vnodes = qnode->children();
         for(pair<int, VNode*> vnode : vnodes) {
-//            if(action == selected_action & vnode.first == selected_obs)
-//                continue;
+            if(action == selected_action & vnode.first == selected_obs)
+                continue;
 
             loop_tree(vnode.second);
         }
@@ -493,14 +500,12 @@ void POMCP::root_loop_tree(ACT_TYPE selected_action, OBS_TYPE selected_obs) {  /
 }
 
 
-void POMCP::loop_tree(const VNode* node) {
-    if(node->particles().empty() == 0 && node->count() > 0){ //create approximate belief state and export to csv
-        std::vector<int> belief = sum_particles(const_cast<vector<State *> &>(node->particles()));
-        export_to_csv(belief,node->value(),node->count());
-    }
+void POMCP::loop_tree(VNode* node) {
+    if(node->particles().empty() == 0 && node->count() > 0) //create approximate belief state and export to csv
+        export_to_csv(node);
 
     for(int action=0; action < node->children().size(); action++){ //continue scanning the tree
-        QNode* qnode = const_cast<QNode *>(node->Child(action));
+        QNode* qnode = node->Child(action);
         map<OBS_TYPE, VNode*>& vnodes = qnode->children();
 
         for(auto const& vnode : vnodes)
@@ -509,11 +514,28 @@ void POMCP::loop_tree(const VNode* node) {
     }
 }
 
-void POMCP::export_to_csv(std::vector<int> belief, double value, int count) {
+
+void POMCP::export_to_csv(VNode* node) {
+
+    std::vector<int> belief = sum_particles(const_cast<vector<State *> &>(node->particles()));
+    std::vector<double> action_value;
+    std::vector<int> action_count;
+
+    for (int action = 0; action < node->children().size(); action++) {
+        QNode *qnode = node->Child(action);
+        action_value.push_back(qnode->value());
+        action_count.push_back(qnode->count());
+    }
+
+
     string row = "";
     for(int i = 0; i < belief.size(); i++)
         row = row + to_string(belief[i]) + ",";
-    row = row + to_string(value) + "," + to_string(count) + "," + to_string(this->step_) + "\n";
+
+    for(int  i = 0; i < action_value.size(); i++)
+        row = row + to_string(action_value[i]) + "," + to_string(action_count[i]) + ",";
+
+    row = row + to_string(this->step_) + "\n";
     *(this->file_) << row;
 }
 

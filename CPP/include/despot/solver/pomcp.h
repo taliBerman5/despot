@@ -120,8 +120,8 @@ public:
 	static int Count(const VNode* vnode);
     std::vector<int> sum_particles(std::vector<State*>& VNode); //TB
     void root_loop_tree(ACT_TYPE selected_action, OBS_TYPE selected_obs); //TB
-    void loop_tree(const VNode* node) ; //TB
-    void export_to_csv(std::vector<int> belief, double value, int count) ; //TB
+    void loop_tree(VNode* node) ; //TB
+    void export_to_csv(VNode* node) ; //TB
 };
 
 /* =============================================================================
