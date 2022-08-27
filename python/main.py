@@ -5,7 +5,7 @@ import torch
 import pytorch_lightning as pl
 import torch.nn.functional as F
 
-NSTATES = 10
+NSTATES = 256
 NACTIONS = 5
 
 
@@ -44,7 +44,8 @@ class DataSet(torch.utils.data.Dataset):
         return len(self.belief_state)
 
 
-train_loader = torch.utils.data.DataLoader(DataSet(bs, w_bsa))
+belief_state, action_value, action_count, step = utils.load_csv("pomcp_belief_statistics.csv")
+train_loader = torch.utils.data.DataLoader(DataSet(belief_state, action_value, action_count))
 model = NN(NSTATES, NACTIONS)
 trainer = pl.Trainer(max_epochs=1)
 trainer.fit(model, train_dataloaders=train_loader)
