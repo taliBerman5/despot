@@ -63,6 +63,10 @@ const vector<State*>& VNode::particles() const {
 	return particles_;
 }
 
+vector<State*>& VNode::particles_non_const() { //TB non const
+    return particles_;
+}
+
 void VNode::depth(int d) {
 	depth_ = d;
 }

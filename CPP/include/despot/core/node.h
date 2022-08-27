@@ -84,6 +84,8 @@ public:
 	void PrintPolicyTree(int depth = -1, std::ostream& os = std::cout);
 
 	void Free(const DSPOMDP& model);
+
+    std::vector<State *> &particles_non_const(); //TB
 };
 
 /* =============================================================================

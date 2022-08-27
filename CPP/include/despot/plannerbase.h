@@ -192,7 +192,7 @@ public:
 	 * Initialize the solver according to user-specified solver type (defualt "DESPOT")
 	 */
 	Solver* InitializeSolver(DSPOMDP* model, Belief* belief,
-			std::string solver_type, option::Option* options);
+			std::string solver_type, option::Option* options, ofstream* myfile); //TB file added ofstream
 
 	/**
 	 * Parse global parameters from command-line arguments

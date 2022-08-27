@@ -1,5 +1,6 @@
 #include <despot/util/logging.h>
 #include <despot/solver/pomcp.h>
+#include <iostream>  //TB
 
 using namespace std;
 
@@ -55,14 +56,29 @@ void UniformPOMCPPrior::ComputePreference(const State& state) {
 /* =============================================================================
  * POMCP class
  * =============================================================================*/
+    POMCP::POMCP(const DSPOMDP* model, POMCPPrior* prior, Belief* belief) :
+            Solver(model, belief),
+            root_(NULL) {
+        reuse_ = false;
+        prior_ = prior;
+        assert(prior_ != NULL);
 
-POMCP::POMCP(const DSPOMDP* model, POMCPPrior* prior, Belief* belief) :
+    }
+
+POMCP::POMCP(const DSPOMDP* model, POMCPPrior* prior, ofstream* myfile, Belief* belief) : //TB file
 	Solver(model, belief),
 	root_(NULL) {
 	reuse_ = false;
 	prior_ = prior;
 	assert(prior_ != NULL);
-//    NN().init_model(); //TB
+    file_ = myfile;
+    step_ = 0;
+    string states_title = "";
+    for(int i = 0; i < model->NumStates(); i++)
+        states_title = states_title + "state " + to_string(i) + ",";
+    string title = states_title + "value,count,step\n";
+    *myfile << title;
+
 }
 
 void POMCP::reuse(bool r) {
@@ -128,6 +144,7 @@ ValuedAction POMCP::Search(double timeout) {
 }
 
 ValuedAction POMCP::Search() {
+        step_ += 1;
 	return Search(Globals::config.time_per_move);
 }
 
@@ -143,8 +160,8 @@ void POMCP::belief(Belief* b) {
 
 void POMCP::BeliefUpdate(ACT_TYPE action, OBS_TYPE obs) {
 	double start = get_time_second();
-//    State s = *(root_->children()[0]->children()[1]->vstar->particles()[0]); //TB
-	if (reuse_) {
+    root_loop_tree(action, obs);
+    if (reuse_) {
 		VNode* node = root_->Child(action)->Child(obs);
 		root_->Child(action)->children().erase(obs);
 		delete root_;
@@ -219,10 +236,9 @@ int POMCP::Count(const VNode* vnode) {
 	return count;
 }
 
-VNode* POMCP::CreateVNode(int depth, const State* state, POMCPPrior* prior,
-	const DSPOMDP* model) {
+VNode* POMCP::CreateVNode(int depth, State* state, POMCPPrior* prior, const DSPOMDP* model) { //TB removed const in state
 	VNode* vnode = new VNode(0, 0.0, depth);
-
+    vnode->particles_non_const().push_back(state); //TB added particles save
 	prior->ComputePreference(*state);
 
 	const vector<int>& preferred_actions = prior->preferred_actions();
@@ -270,7 +286,7 @@ double POMCP::Simulate(State* particle, RandomStreams& streams, VNode* vnode,
 	if (streams.Exhausted())
 		return 0;
 
-	double explore_constant = prior->exploration_constant();
+	double explore_constant = (model->GetMaxReward() - OptimalAction(vnode).value);//prior->exploration_constant();
 
 	ACT_TYPE action = POMCP::UpperBoundAction(vnode, explore_constant);
 	logd << *particle << endl;
@@ -312,8 +328,8 @@ double POMCP::Simulate(State* particle, VNode* vnode, const DSPOMDP* model,
 	assert(vnode != NULL);
 	if (vnode->depth() >= Globals::config.search_depth)
 		return 0;
-
-	double explore_constant = prior->exploration_constant();
+    vnode->particles_non_const().push_back(particle); //TB added particles save
+	double explore_constant = (model->GetMaxReward() - OptimalAction(vnode).value);//prior->exploration_constant();
 
 	ACT_TYPE action = UpperBoundAction(vnode, explore_constant);
 
@@ -449,6 +465,58 @@ ValuedAction POMCP::Evaluate(VNode* root, vector<State*>& particles,
 
 	return ValuedAction(UpperBoundAction(root, 0), value / particles.size());
 }
+
+std::vector<int> POMCP::sum_particles(vector<State*>& particles) {
+    std::vector<int> belief(model_->NumStates(), 0);
+    for(State* & particle : particles)
+        belief[particle->state_id] += 1;
+
+    return belief;
+}
+
+void POMCP::root_loop_tree(ACT_TYPE selected_action, OBS_TYPE selected_obs) {  //TODO: remove all sub tree under the action or the observation as well?
+
+        //get root belief, value, count
+        std::vector<int> belief = sum_particles(const_cast<vector<State *> &>(root_->particles()));
+        export_to_csv(belief,root_->value(),root_->count());
+
+        for (int action = 0; action < root_->children().size(); action++) {
+        QNode *qnode = root_->Child(action);
+        map<OBS_TYPE, VNode*>& vnodes = qnode->children();
+        for(pair<int, VNode*> vnode : vnodes) {
+//            if(action == selected_action & vnode.first == selected_obs)
+//                continue;
+
+            loop_tree(vnode.second);
+        }
+    }
+}
+
+
+void POMCP::loop_tree(const VNode* node) {
+    if(node->particles().empty() == 0 && node->count() > 0){ //create approximate belief state and export to csv
+        std::vector<int> belief = sum_particles(const_cast<vector<State *> &>(node->particles()));
+        export_to_csv(belief,node->value(),node->count());
+    }
+
+    for(int action=0; action < node->children().size(); action++){ //continue scanning the tree
+        QNode* qnode = const_cast<QNode *>(node->Child(action));
+        map<OBS_TYPE, VNode*>& vnodes = qnode->children();
+
+        for(auto const& vnode : vnodes)
+            loop_tree(vnode.second);
+
+    }
+}
+
+void POMCP::export_to_csv(std::vector<int> belief, double value, int count) {
+    string row = "";
+    for(int i = 0; i < belief.size(); i++)
+        row = row + to_string(belief[i]) + ",";
+    row = row + to_string(value) + "," + to_string(count) + "," + to_string(this->step_) + "\n";
+    *(this->file_) << row;
+}
+
 
 /* =============================================================================
  * DPOMCP class

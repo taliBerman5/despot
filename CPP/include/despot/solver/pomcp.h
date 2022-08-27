@@ -67,6 +67,7 @@ public:
 	const std::vector<int>& legal_actions() const;
 
 	ACT_TYPE GetAction(const State& state);
+
 };
 
 /* =============================================================================
@@ -90,9 +91,12 @@ protected:
 	VNode* root_;
 	POMCPPrior* prior_;
 	bool reuse_;
+    std::ofstream* file_;
+    int step_;
 
 public:
 	POMCP(const DSPOMDP* model, POMCPPrior* prior, Belief* belief = NULL);
+	POMCP(const DSPOMDP* model, POMCPPrior* prior, std::ofstream* myfile, Belief* belief = NULL); //TB file
 	virtual ValuedAction Search();
 	virtual ValuedAction Search(double timeout);
 
@@ -100,8 +104,7 @@ public:
 	virtual void belief(Belief* b);
 	virtual void BeliefUpdate(ACT_TYPE action, OBS_TYPE obs);
 
-	static VNode* CreateVNode(int depth, const State*, POMCPPrior* prior,
-		const DSPOMDP* model);
+	static VNode* CreateVNode(int depth, State*, POMCPPrior* prior, const DSPOMDP* model); //TB removed const
 	static double Simulate(State* particle, VNode* root, const DSPOMDP* model,
 		POMCPPrior* prior);
 	static double Simulate(State* particle, RandomStreams& streams,
@@ -115,6 +118,10 @@ public:
 	static ACT_TYPE UpperBoundAction(const VNode* vnode, double explore_constant);
 	static ValuedAction OptimalAction(const VNode* vnode);
 	static int Count(const VNode* vnode);
+    std::vector<int> sum_particles(std::vector<State*>& VNode); //TB
+    void root_loop_tree(ACT_TYPE selected_action, OBS_TYPE selected_obs); //TB
+    void loop_tree(const VNode* node) ; //TB
+    void export_to_csv(std::vector<int> belief, double value, int count) ; //TB
 };
 
 /* =============================================================================
