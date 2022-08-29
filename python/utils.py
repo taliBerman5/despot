@@ -1,5 +1,13 @@
 import torch
 import pandas as pd
+import numpy as np
+
+
+def set_seed(seed):
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    torch.manual_seed(seed)
+    np.random.seed(seed)
 
 
 def bsa_loss(output, target):
@@ -15,15 +23,18 @@ def bsa_loss(output, target):
     neff = 1 / (1 / n + 1 / ss)
     alpha = mean * neff
     beta = neff - alpha
-    return -torch.mean(torch.distributions.beta.Beta(alpha, beta).log_prob(v))
+    alpha = torch.clip(alpha, min=0.001)
+    beta = torch.clip(beta, min=0.001)
+    # return -torch.mean(torch.distributions.beta.Beta(alpha, beta).log_prob(v))
+    return torch.distributions.beta.Beta(alpha, beta)
 
 
-def load_csv(file_name):
+def load_csv(file_name, num_states):
     data = pd.read_csv(file_name, delimiter=',')
     data = data.to_numpy()
-    belief_state = data[:, : -3]
-    action_value = data[:, -3:-2]
-    action_count = data[:, -2:-1]
+    belief_state = data[:, : num_states]
+    action_value = data[:, num_states::2][:, :-1]
+    action_count = data[:, num_states + 1::2]
     step = data[:, -1:]
 
     return belief_state, action_value, action_count, step
