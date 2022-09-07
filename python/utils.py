@@ -23,10 +23,10 @@ def bsa_loss(output, target):
     neff = 1 / (1 / n + 1 / ss)
     alpha = mean * neff
     beta = neff - alpha
-    alpha = torch.clip(alpha, min=0.001)
-    beta = torch.clip(beta, min=0.001)
-    # return -torch.mean(torch.distributions.beta.Beta(alpha, beta).log_prob(v))
-    return torch.distributions.beta.Beta(alpha, beta)
+    # alpha = torch.clip(alpha, min=0.001)
+    # beta = torch.clip(beta, min=0.001)
+    return -torch.mean(torch.distributions.beta.Beta(alpha, beta).log_prob(v))
+    # return torch.distributions.beta.Beta(alpha, beta)
 
 
 def load_csv(file_name, num_states):
@@ -38,3 +38,10 @@ def load_csv(file_name, num_states):
     step = data[:, -1:]
 
     return belief_state, action_value, action_count, step
+
+
+def step_values(indices, belief_state, action_value, action_count):
+    belief_state_step = belief_state[indices].reshape(len(indices), belief_state.shape[1])
+    action_value_step = action_value[indices].reshape(len(indices), action_value.shape[1])
+    action_count_step = action_count[indices].reshape(len(indices), action_count.shape[1])
+    return belief_state_step, action_value_step, action_count_step
