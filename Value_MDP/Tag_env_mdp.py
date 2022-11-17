@@ -81,9 +81,8 @@ class TagEnv(Env):
     metadata = {"render.modes": ["human", "ansi"]}
 
     def __init__(self, num_opponents=1, move_prob=.8, board_size=(10, 5)):
-        self.num_opponents = num_opponents
         self.move_prob = move_prob
-        self._reward_range = 10 * self.num_opponents
+        self._reward_range = 10
         self._discount = .95
         self.action_space = Discrete(len(Action))
         self.nA = len(Action)
@@ -92,7 +91,7 @@ class TagEnv(Env):
         self.done = False
         self.state = self._get_init_state(False)
         self.last_action = 4
-        self.nS = 870
+        self.nS = 2500
 
     def reset(self):
         self.done = False
@@ -114,30 +113,26 @@ class TagEnv(Env):
         self.time += 1
         self.last_action = action
         assert self.grid.is_inside(self.state.agent_pos)
-        assert self.grid.is_inside(self.state.opponent_pos[0])
+        assert self.grid.is_inside(self.state.opponent_pos)
 
         if action == 4:
             tagged = False
-            for opp, opp_pos in enumerate(self.state.opponent_pos):
-                if opp_pos == self.state.agent_pos:  # check if x==x_agent and y==y_agent
-                    reward = 10.
-                    tagged = True
-                    # self.state.opponent_pos[opp] = Coord(4, 4)
-                    self.state.num_opp -= 1
-                    # self.state.opponent_pos.pop(opp)
-                elif self.grid.is_inside(self.state.opponent_pos[opp]) and self.state.num_opp > 0:
-                    self.move_opponent(opp)
+            if self.state.opponent_pos == self.state.agent_pos:  # check if x==x_agent and y==y_agent
+                reward = 10.
+                self.done = True
+            elif self.grid.is_inside(self.state.opponent_pos) and self.state.num_opp > 0:
+                self.move_opponent()
             if not tagged:
                 reward = -10.
 
         else:
             reward = -1.
+            self.move_opponent()
             next_pos = self.state.agent_pos + Moves.get_coord(action)
             if self.grid.is_inside(next_pos):
                 self.state.agent_pos = next_pos
 
         # p_ob = self._compute_prob(action, self.state, ob)
-        self.done = self.state.num_opp == 0
         return self.state, reward, self.done  # self._encode_state(self.state)}
 
     def render(self, mode="human", close=False):
@@ -146,62 +141,57 @@ class TagEnv(Env):
             return
         if mode == "human":
             agent_pos = self.grid.get_index(self.state.agent_pos)
-            opponent_pos = [self.grid.get_index(opp) for opp in self.state.opponent_pos]
-            msg = "State: " + str(self.state) + " Time: " + str(self.time) + " Action: " + action_to_str(
+            opponent_pos = self.grid.get_index(self.state.opponent_pos)
+            msg = "State: " + str(self.encode_state(self.state)) + " Time: " + str(self.time) + " Action: " + action_to_str(
                 self.last_action)
-            print(f'agent pos {agent_pos}, opponent pos {opponent_pos[0]}, msg {msg}')
+            print(f'agent pos {agent_pos}, opponent pos {opponent_pos}, msg {msg}')
 
-    def _encode_state(self, state):
-        s = np.zeros(self.num_opponents + 1, dtype=np.int32) - 1
-        s[0] = self.grid.get_index(state.agent_pos)
-        for idx, opp in zip(range(1, len(s)), state.opponent_pos):
-            opp_idx = self.grid.get_index(opp)
-            s[idx] = opp_idx
-        return s
+    # def _encode_state(self, state):
+    #     s = np.zeros(self.num_opponents + 1, dtype=np.int32) - 1
+    #     s[0] = self.grid.get_index(state.agent_pos)
+    #     for idx, opp in zip(range(1, len(s)), state.opponent_pos):
+    #         opp_idx = self.grid.get_index(opp)
+    #         s[idx] = opp_idx
+    #     return s
 
     def encode_state(self, state):  #TB
-        s = np.zeros(self.num_opponents + 1, dtype=np.int32) - 1
+        s = np.zeros(2)
         s[0] = self.grid.get_index(state.agent_pos)
-        for idx, opp in zip(range(1, len(s)), state.opponent_pos):
-            opp_idx = self.grid.get_index(opp)
-            s[idx] = opp_idx
-        return s
+        opp_idx = self.grid.get_index(state.opponent_pos)
+        s[1] = opp_idx
+        return s[0] * self.grid.n_tiles + s[1]
 
     def decode_state(self, state_id): #TB
-        agent_idx = state[0]
-        tag_state = TagState(self.grid.get_tag_coord(agent_idx))
-        for opp_idx in state[1:]:
-            if opp_idx > -1:
-                tag_state.num_opp += 1
-            opp_pos = self.grid.get_tag_coord(opp_idx)
-            tag_state.opponent_pos.append(opp_pos)
-
-    def _decode_state(self, state):
-        agent_idx = state[0]
-        tag_state = TagState(self.grid.get_tag_coord(agent_idx))
-        for opp_idx in state[1:]:
-            if opp_idx > -1:
-                tag_state.num_opp += 1
-            opp_pos = self.grid.get_tag_coord(opp_idx)
-            tag_state.opponent_pos.append(opp_pos)
-
-            # true_pos = [grid.get_index(pos) for pos in env.state.opponent_pos]
-        # assert np.all(state[1:] == true_pos)
-        # assert np.all(tag_state.opponent_pos == env.state.opponent_pos)
+        agent_idx = state_id // self.grid.n_tiles
+        opp_idx = state_id % self.grid.n_tiles
+        tag_state = TagState(self.grid.get_tag_coord(agent_idx), self.grid.get_tag_coord(opp_idx))
         return tag_state
+
+
+    # def _decode_state(self, state):
+    #     agent_idx = state[0]
+    #     tag_state = TagState(self.grid.get_tag_coord(agent_idx))
+    #     for opp_idx in state[1:]:
+    #         if opp_idx > -1:
+    #             tag_state.num_opp += 1
+    #         opp_pos = self.grid.get_tag_coord(opp_idx)
+    #         tag_state.opponent_pos.append(opp_pos)
+    #
+    #         # true_pos = [grid.get_index(pos) for pos in env.state.opponent_pos]
+    #     # assert np.all(state[1:] == true_pos)
+    #     # assert np.all(tag_state.opponent_pos == env.state.opponent_pos)
+    #     return tag_state
 
     def _get_init_state(self, should_encode=False):
 
         agent_pos = self.grid.sample()
         assert self.grid.is_inside(agent_pos)
-        tag_state = TagState(agent_pos)
-        for opp in range(self.num_opponents):
-            opp_pos = self.grid.sample()
-            assert self.grid.is_inside(opp_pos)
-            tag_state.opponent_pos.append(opp_pos)
+        opp_pos = self.grid.sample()
+        assert self.grid.is_inside(opp_pos)
 
-        tag_state.num_opp = self.num_opponents
-        assert len(tag_state.opponent_pos) > 0
+        tag_state = TagState(agent_pos, opp_pos)
+
+
         return tag_state if not should_encode else self._encode_state(tag_state)
 
     def _set_state(self, state):
@@ -210,13 +200,13 @@ class TagEnv(Env):
         # self.state = self._decode_state(state)
         self.state = state
 
-    def move_opponent(self, opp):
-        opp_pos = self.state.opponent_pos[opp]
+    def move_opponent(self):
+        opp_pos = self.state.opponent_pos
         actions = self._admissable_actions(self.state.agent_pos, opp_pos)
         if np.random.binomial(1, self.move_prob):
             move = np.random.choice(actions).value
             if self.grid.is_inside(opp_pos + move):
-                self.state.opponent_pos[opp] = self.state.opponent_pos[opp] + move
+                self.state.opponent_pos = self.state.opponent_pos + move
 
 
     def _generate_legal(self):
@@ -238,6 +228,43 @@ class TagEnv(Env):
     #
     #     ob = self._sample_ob(state, last_action)
     #     return ob == last_ob
+
+    def oppTransitionDistribution(self, state):
+        distribution = {}
+        tag_state = self.decode_state(state)
+        rob_pos = tag_state.agent_pos
+        opp_pos = tag_state.opponent_pos[0]
+        if rob_pos.x == opp_pos.x:
+            index = self.grid.get_index(opp_pos + Coord(1, 0)) if self.grid.is_inside(opp_pos + Coord(1, 0)) else self.grid.get_index(opp_pos)
+            distribution[index] += 0.2
+
+            index = self.grid.get_index(opp_pos + Coord(-1, 0)) if self.grid.is_inside(opp_pos + Coord(-1, 0)) else self.grid.get_index(opp_pos)
+            distribution[index] += 0.2
+        else:
+            dx = 1 if opp_pos.x > rob_pos.x else -1
+            index = self.grid.get_index(opp_pos + Coord(dx, 0)) if self.grid.is_inside(opp_pos + Coord(dx, 0)) else self.grid.get_index(opp_pos)
+            distribution[index] += 0.4
+
+        if rob_pos.y == opp_pos.y:
+            index = self.grid.get_index(opp_pos + Coord(0, 1)) if self.grid.is_inside(opp_pos + Coord(0, 1)) else self.grid.get_index(opp_pos)
+            distribution[index] += 0.2
+
+            index = self.grid.get_index(opp_pos + Coord(0, -1)) if self.grid.is_inside(opp_pos + Coord(0, -1)) else self.grid.get_index(opp_pos)
+            distribution[index] += 0.2
+        else:
+            dy = 1 if opp_pos.y > rob_pos.y else -1
+            index = self.grid.get_index(opp_pos + Coord(0, dy)) if self.grid.is_inside(opp_pos + Coord(0, dy)) else self.grid.get_index(opp_pos)
+            distribution[index] += 0.4
+
+        distribution[self.grid.get_index(opp_pos)] += 0.2
+
+        return distribution
+
+    def stateTransitionDistribution(self, state):
+
+        opp_distribution = self.oppTransitionDistribution(state)
+
+
 
     @staticmethod
     def _admissable_actions(agent_pos, opp_pos):
@@ -263,13 +290,10 @@ class TagEnv(Env):
 
 # add heuristcs to tag problem
 class TagState(object):
-    def __init__(self, coord):
+    def __init__(self, coord, opp_coord):
         self.agent_pos = coord
-        self.opponent_pos = []
+        self.opponent_pos = opp_coord
         self.num_opp = 0
-
-    def __str__(self):
-        return str(len(self.opponent_pos))
 
 
 if __name__ == '__main__':
@@ -283,6 +307,19 @@ if __name__ == '__main__':
     #
 
 
+    legal_state = []
+    for i in range(env.nS):
+        state = env.decode_state(i)
+        if env.grid.is_inside(state.agent_pos) & env.grid.is_inside(state.opponent_pos):
+            legal_state.append(i)
+
+    for i in legal_state:
+        state = env.decode_state(i)
+        ind = env.encode_state(state)
+        if i != ind:
+            print("noooo")
+
+
 
     env.render()
     done = False
@@ -290,7 +327,11 @@ if __name__ == '__main__':
     while not done:
         action = np.random.choice(env._generate_legal())
         state, rw, done = env.step(action)
-        TagGrid.get_tag_coord(env.grid,1)
+        # ind = env.encode_state(state)
+        # s = env.decode_state(ind)
+        # print(f'real {state.agent_pos} : {state.opponent_pos}, me - {s.agent_pos} : {s.opponent_pos}')
+        # if (state.agent_pos != s.agent_pos) | (state.opponent_pos[0] != s.opponent_pos[0]):
+        #     print("noooooooooooooooooo")
         # env._set_state(info['state'])
         env.render()
         r += rw
