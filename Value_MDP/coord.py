@@ -68,6 +68,7 @@ class Grid(object):
     def sample(self):
         return self.get_coord(np.random.randint(self.n_tiles))
 
+
     @property
     def get_size(self):
         return self.x_size, self.y_size

@@ -3,8 +3,13 @@ import numpy as np
 from numpy import linalg as LA
 import matplotlib.pyplot as plot
 
-gama = 0.95
-epsilon = 0.0001
+gamma = 0.95
+epsilon = 1
+steps_amount = 1000000
+steps_per_episode = 250
+num_of_simulates = 100
+
+
 action = {0: "move_south", 1: "move_north", 2: "move_east", 3: "move_west", 4: "Tag"}
 end_states = []
 start_states = []
@@ -18,27 +23,6 @@ def legal_state_id(env):
             legal_state.append(i)
     return legal_state
 
-def explor_Tr(env, legal_states):
-    """
-    :param env: the environment by the convention of the open AI
-    :return: transition function of the domain, includes : reward, transition by action
-    """
-    Tr = {}
-    for i in legal_states:
-        Tr[i] = {}
-        for a in range(env.nA):
-            Tr[i][a] = {"s'": -1, "r": -100}
-
-            # randering the env for the state
-            env.reset()
-            env.state = env.decode_state(i)
-            # do action a at state s
-            obz = env.step(a)
-            Tr[i][a]["s'"] = env.encode_state(obz[0])
-            Tr[i][a]["r"] = obz[1]
-            if obz[2] == True:  # done == end state
-                end_states.append(obz[0])
-    return Tr
 
 
 def init_start_states(env, legal_states):
@@ -51,28 +35,67 @@ def init_start_states(env, legal_states):
                 start_states.append(s)
 
 
-def policy_eval(pai, V, Tr, legal_states):
-    # value calculation for V
-    while True:
-        vold = V.copy()
-        for s in legal_states:
-            if s not in end_states:
-                V[s] = Tr[s][pai[s]]["r"] + gama * V[Tr[s][pai[s]]["s'"]]
-        if LA.norm(V - vold, np.inf) <= epsilon:
-            break
+def epsilon_greedy(env, Q_table, state, eps):
+    if np.random.uniform(0, 1) < eps:
+        return env.action_space.sample()
+    else:
+        return np.argmax(Q_table[state, :])
 
 
-def policy_improve(pai, V, Tr, legal_states):
-    for s in legal_states:
-        Ma = 0
-        Mv = Tr[s][Ma]["r"] + gama * V[Tr[s][Ma]["s'"]]
-        for a in range(1, 6):
-            v = Tr[s][a]["r"] + gama * V[Tr[s][a]["s'"]]
-            if v > Mv:
-                Ma = a
-                Mv = v
-        pai[s] = Ma
-    return pai
+def Q_learning(env, eps, alpha):
+    i = 0
+    policy_value = []
+    policy_steps_value = []
+    Q_table = np.zeros((env.observation_space.n, env.action_space.n))
+
+    while i <= steps_amount:
+        state = env.reset()
+        for j in range(steps_per_episode):
+            action = epsilon_greedy(env, Q_table, state, eps)
+            s_tag, r, done, prob = env.step(action)
+            Q_table[state, action] += alpha *(r + (gamma * np.max(Q_table[s_tag, :])) - Q_table[state, action])
+
+            i += 1
+
+            if i == 1000 or i == 3000 or i == 5000 or i % 10000 == 0:
+                policy_steps_value.append(i)
+                policy_value.append(eval_policy(env, Q_table))
+
+            if done:
+                if r == 1:  # decay epsilon only if reached to the goal
+                     eps = max(0.01, eps * 0.99)
+                break
+            state = s_tag
+
+    return Q_table, policy_value, policy_steps_value
+
+def eval_policy(env, Q_table):
+    total_rewards = 0
+    sum_success = 0
+    for i in range(num_of_simulates):
+        state = env.reset()
+        path_len = 0
+        r = 0
+        discount_factor = []
+        rewards = []
+        curr_reward = 0
+        for j in range(steps_per_episode):
+            action = np.argmax(Q_table[state, :])
+            state, r, done, prob = env.step(action)
+
+            discount_factor.append(gamma ** path_len)
+            rewards.append(r)
+            path_len += 1
+            if done:
+                break
+        for ri in range(path_len):
+            curr_reward += discount_factor[ri] * rewards[ri]
+        total_rewards += curr_reward
+
+        sum_success += r
+
+    return total_rewards / num_of_simulates
+
 
 
 def plotV(iterV):
