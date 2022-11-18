@@ -1,10 +1,14 @@
 from enum import Enum
 
+import random
 import numpy as np
 from gym import Env
 from gym.spaces import Discrete
 from coord import Coord, Moves, Grid
 
+
+random.seed(1)
+np.random.seed(1)
 
 def action_to_str(action):
     if action == 0:
@@ -115,14 +119,12 @@ class TagEnv(Env):
         assert self.grid.is_inside(self.state.opponent_pos)
 
         if action == 4:
-            tagged = False
             if self.state.opponent_pos == self.state.agent_pos:  # check if x==x_agent and y==y_agent
                 reward = 10.
                 self.done = True
-            elif self.grid.is_inside(self.state.opponent_pos) and self.state.num_opp > 0:
-                self.move_opponent()
-            if not tagged:
+            else:
                 reward = -10.
+                self.move_opponent()
 
         else:
             reward = -1.
@@ -148,7 +150,7 @@ class TagEnv(Env):
 
 
     def robOppIndexToStateInd(self, rob_idx, opp_idx):
-        return rob_idx * self.grid.n_tiles + opp_idx
+        return int(rob_idx * self.grid.n_tiles + opp_idx)
 
     def encode_state(self, state):  # TB
         s = np.zeros(2)
@@ -239,13 +241,22 @@ class TagEnv(Env):
             rob_opp_distribution[self.robOppIndexToStateInd(rob_idx, key)] = opp_distribution[key]
         return rob_opp_distribution
 
+    def legal_state_id(self):
+        legal_state = []
+        for i in range(self.nS):
+            state = self.decode_state(i)
+            if self.grid.is_inside(state.agent_pos) & self.grid.is_inside(state.opponent_pos):
+                legal_state.append(i)
+        return legal_state
+
+
 
 # add heuristcs to tag problem
 class TagState(object):
     def __init__(self, coord, opp_coord):
         self.agent_pos = coord
         self.opponent_pos = opp_coord
-        self.num_opp = 0
+
 
 
 if __name__ == '__main__':
