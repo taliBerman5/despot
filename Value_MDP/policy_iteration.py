@@ -5,39 +5,32 @@ import matplotlib.pyplot as plot
 
 gama = 0.95
 epsilon = 0.0001
-action = {0: "move_south", 1: "move_north", 2: "move_east", 3: "move_west", 4: "Tag"}
+action = {0: "up", 1: "right", 2: "down", 3: "left", 4: "Tag"}
 end_states = []
 start_states = []
 
+np.random.seed(1)
 
-def legal_state_id(env):
-    legal_state = []
-    for i in range(env.nS):
-        state = env.decode_state(i)
-        if env.grid.is_inside(state.agent_pos) & env.grid.is_inside(state.opponent_pos[0]):
-            legal_state.append(i)
-    return legal_state
 
+# reward are deterministic for state, transition is not
 def explor_Tr(env, legal_states):
     """
     :param env: the environment by the convention of the open AI
     :return: transition function of the domain, includes : reward, transition by action
     """
     Tr = {}
-    for i in legal_states:
-        Tr[i] = {}
+    for s in legal_states:
+        Tr[s] = {}
         for a in range(env.nA):
-            Tr[i][a] = {"s'": -1, "r": -100}
+            Tr[s][a] = {"s'": -1, "r": -100}
 
             # randering the env for the state
             env.reset()
-            env.state = env.decode_state(i)
-            # do action a at state s
+            env.state = env.decode_state(s)
+            # do action 'a' at state s
             obz = env.step(a)
-            Tr[i][a]["s'"] = env.encode_state(obz[0])
-            Tr[i][a]["r"] = obz[1]
-            if obz[2] == True:  # done == end state
-                end_states.append(obz[0])
+            Tr[s][a]["s'"] = env.stateTransitionDistribution(s, a)
+            Tr[s][a]["r"] = obz[1]
     return Tr
 
 
@@ -47,27 +40,29 @@ def init_start_states(env, legal_states):
         agent_pos = tag_state.agent_pos
         opp_pos = tag_state.opponent_pos
         if agent_pos != opp_pos:  # the passenger is not in the taxi
-            if s not in end_states:
-                start_states.append(s)
+            start_states.append(s)
 
 
 def policy_eval(pai, V, Tr, legal_states):
     # value calculation for V
     while True:
-        vold = V.copy()
+        Vold = V.copy()
         for s in legal_states:
-            if s not in end_states:
-                V[s] = Tr[s][pai[s]]["r"] + gama * V[Tr[s][pai[s]]["s'"]]
-        if LA.norm(V - vold, np.inf) <= epsilon:
+            V[s] = Tr[s][pai[s]]["r"] + gama * V_next(V, Tr, s, pai[s])
+        if LA.norm(V - Vold, np.inf) <= epsilon:
             break
 
 
-def policy_improve(pai, V, Tr, legal_states):
+def V_next(V, Tr, state, action):
+    return sum([V[s_next] * Tr[state][action]["s'"][s_next] for s_next in Tr[state][action]["s'"]])
+
+
+def policy_improve(env, pai, V, Tr, legal_states):
     for s in legal_states:
         Ma = 0
-        Mv = Tr[s][Ma]["r"] + gama * V[Tr[s][Ma]["s'"]]
-        for a in range(1, 6):
-            v = Tr[s][a]["r"] + gama * V[Tr[s][a]["s'"]]
+        Mv = Tr[s][Ma]["r"] + gama * V_next(V, Tr, s, Ma)
+        for a in range(1, env.nA):
+            v = Tr[s][a]["r"] + gama * V_next(V, Tr, s, a)
             if v > Mv:
                 Ma = a
                 Mv = v
@@ -86,25 +81,24 @@ def plotV(iterV):
     plot.show()
 
 
-
 def simulate(env, optimal_pai):
     sum_of_reward = 0
     steps = 0
-    s = env.reset()
+    tag_state = env.reset()
     done = False
     counter = 1
     while not done:
-        tag_state = env.decode(s)
+        s = env.encode_state(tag_state)
         agent_pos = tag_state.agent_pos
         opp_pos = tag_state.opponent_pos
         pai_action = optimal_pai[s]
-        s, r, done, x = env.step(pai_action)
+        tag_state, r, done = env.step(pai_action)
         agent_position = str(agent_pos.x) + "," + str(agent_pos.y)
         opp_position = str(opp_pos.x) + "," + str(opp_pos.y)
         print_r = r
         if print_r > 0:
             print_r = "+" + str(print_r)
-        print(str(counter) + ".", agent_position, opp_position, action[pai_action], print_r)
+        print(str(counter) + ". state id", s, agent_position, opp_position, action[pai_action], print_r)
         steps += 1
         sum_of_reward += r
         counter += 1
@@ -120,7 +114,7 @@ def simulateRender(env, optimal_pai):
     env.render()
     done = False
     while not done:
-        obz = env.step(optimal_pai[env.s])
+        obz = env.step(optimal_pai[env.encode_state(env.state)])
         done = obz[2]
         env.render()
 
@@ -136,12 +130,12 @@ def print_value_opt(check_state):
     print('\n')
 
 
-def v_eval_overPi(env, pai, Tr, V):
+def v_eval_overPi(pai, Tr, V, legal_states):
     acc = 0
     v = V.copy()
     while True:
         vold = v.copy()
-        policy_eval(env, pai, v, Tr)
+        policy_eval(pai, v, Tr, legal_states)
         if LA.norm(v - vold, np.inf) <= epsilon:
             break
 
@@ -153,7 +147,7 @@ def v_eval_overPi(env, pai, Tr, V):
 if __name__ == '__main__':
     # initialization
     env = Tag_env_mdp.TagEnv()
-    legal_states = legal_state_id(env)
+    legal_states = env.legal_state_id()
     Tr = explor_Tr(env, legal_states)
     init_start_states(env, legal_states)
     pai = np.asarray([env.action_space.sample() for i in range(env.nS)])
@@ -164,19 +158,18 @@ if __name__ == '__main__':
     # Policy Iteration until converges
     while True:
         policy_eval(pai, V, Tr, legal_states)
-        pai_tag = policy_improve(np.array(pai, copy=True), V, Tr, legal_states)
+        pai_tag = policy_improve(env, np.array(pai, copy=True), V, Tr, legal_states)
         if LA.norm(pai - pai_tag, np.inf) == 0:
             break
         pai = pai_tag
 
-        dic_R_v0_mean.append(v_eval_overPi(env, pai, Tr, V))
+        dic_R_v0_mean.append(v_eval_overPi(pai, Tr, V, legal_states))
 
     plotV(dic_R_v0_mean)
     check_state = [i for i in range(500)]
-    simulateRender(env, pai)
+    # simulateRender(env, pai)
     print_value_opt(check_state)
 
     for i in range(3):
         print("-----------------------------------------------------")
         simulate(env, pai)
-
