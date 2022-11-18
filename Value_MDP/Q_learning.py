@@ -126,6 +126,7 @@ def simulateRender(env, Q_table):
     done = False
     while not done:
         tag_state, r, done = env.step(np.argmax(Q_table[s_idx, :]))
+        s_idx = env.encode_state(tag_state)
         env.render()
 
 
