@@ -1,5 +1,5 @@
 import random
-
+import json
 import numpy as np
 import matplotlib.pyplot as plt
 import Tag_env_mdp
@@ -151,6 +151,11 @@ if __name__ == '__main__':
     plt.xlabel("steps")
     plt.ylabel("policy value")
     plt.show()
+
+    V_table = {s: np.max(Q_table[s]) for s in legal_states}
+
+    with open('V_from_Q_learning_Tag.txt', 'w') as convert_file:
+        convert_file.write(json.dumps(V_table))
 
     for i in range(10):
         simulate(env, Q_table)

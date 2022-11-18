@@ -6,9 +6,9 @@ from gym import Env
 from gym.spaces import Discrete
 from coord import Coord, Moves, Grid
 
-
 random.seed(1)
 np.random.seed(1)
+
 
 def action_to_str(action):
     if action == 0:
@@ -83,7 +83,7 @@ class TagGrid(Grid):
 class TagEnv(Env):
     metadata = {"render.modes": ["human", "ansi"]}
 
-    def __init__(self, num_opponents=1, move_prob=.8, board_size=(10, 5)):
+    def __init__(self, move_prob=.8, board_size=(10, 5)):
         self.move_prob = move_prob
         self._reward_range = 10
         self._discount = .95
@@ -148,7 +148,6 @@ class TagEnv(Env):
                 self.last_action)
             print(f'agent pos {agent_pos}, opponent pos {opponent_pos}, msg {msg}')
 
-
     def robOppIndexToStateInd(self, rob_idx, opp_idx):
         return int(rob_idx * self.grid.n_tiles + opp_idx)
 
@@ -164,7 +163,6 @@ class TagEnv(Env):
         opp_idx = state_id % self.grid.n_tiles
         tag_state = TagState(self.grid.get_tag_coord(agent_idx), self.grid.get_tag_coord(opp_idx))
         return tag_state
-
 
     def _get_init_state(self, should_encode=False):
 
@@ -190,7 +188,6 @@ class TagEnv(Env):
 
     def _generate_legal(self):
         return list(range(self.action_space.n))
-
 
     def getIndexForOppDist(self, opp_pos, dx, dy):
         if self.grid.is_inside(opp_pos + Coord(dx, dy)):
@@ -250,13 +247,11 @@ class TagEnv(Env):
         return legal_state
 
 
-
 # add heuristcs to tag problem
 class TagState(object):
     def __init__(self, coord, opp_coord):
         self.agent_pos = coord
         self.opponent_pos = opp_coord
-
 
 
 if __name__ == '__main__':
