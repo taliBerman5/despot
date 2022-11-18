@@ -6,7 +6,6 @@ from gym.spaces import Discrete
 from coord import Coord, Moves, Grid
 
 
-
 def action_to_str(action):
     if action == 0:
         return "up"
@@ -142,45 +141,28 @@ class TagEnv(Env):
         if mode == "human":
             agent_pos = self.grid.get_index(self.state.agent_pos)
             opponent_pos = self.grid.get_index(self.state.opponent_pos)
-            msg = "State: " + str(self.encode_state(self.state)) + " Time: " + str(self.time) + " Action: " + action_to_str(
+            msg = "State: " + str(self.encode_state(self.state)) + " Time: " + str(
+                self.time) + " Action: " + action_to_str(
                 self.last_action)
             print(f'agent pos {agent_pos}, opponent pos {opponent_pos}, msg {msg}')
 
-    # def _encode_state(self, state):
-    #     s = np.zeros(self.num_opponents + 1, dtype=np.int32) - 1
-    #     s[0] = self.grid.get_index(state.agent_pos)
-    #     for idx, opp in zip(range(1, len(s)), state.opponent_pos):
-    #         opp_idx = self.grid.get_index(opp)
-    #         s[idx] = opp_idx
-    #     return s
 
-    def encode_state(self, state):  #TB
+    def robOppIndexToStateInd(self, rob_idx, opp_idx):
+        return rob_idx * self.grid.n_tiles + opp_idx
+
+    def encode_state(self, state):  # TB
         s = np.zeros(2)
         s[0] = self.grid.get_index(state.agent_pos)
         opp_idx = self.grid.get_index(state.opponent_pos)
         s[1] = opp_idx
-        return s[0] * self.grid.n_tiles + s[1]
+        return self.robOppIndexToStateInd(s[0], s[1])
 
-    def decode_state(self, state_id): #TB
+    def decode_state(self, state_id):  # TB
         agent_idx = state_id // self.grid.n_tiles
         opp_idx = state_id % self.grid.n_tiles
         tag_state = TagState(self.grid.get_tag_coord(agent_idx), self.grid.get_tag_coord(opp_idx))
         return tag_state
 
-
-    # def _decode_state(self, state):
-    #     agent_idx = state[0]
-    #     tag_state = TagState(self.grid.get_tag_coord(agent_idx))
-    #     for opp_idx in state[1:]:
-    #         if opp_idx > -1:
-    #             tag_state.num_opp += 1
-    #         opp_pos = self.grid.get_tag_coord(opp_idx)
-    #         tag_state.opponent_pos.append(opp_pos)
-    #
-    #         # true_pos = [grid.get_index(pos) for pos in env.state.opponent_pos]
-    #     # assert np.all(state[1:] == true_pos)
-    #     # assert np.all(tag_state.opponent_pos == env.state.opponent_pos)
-    #     return tag_state
 
     def _get_init_state(self, should_encode=False):
 
@@ -191,7 +173,6 @@ class TagEnv(Env):
 
         tag_state = TagState(agent_pos, opp_pos)
 
-
         return tag_state if not should_encode else self._encode_state(tag_state)
 
     def _set_state(self, state):
@@ -201,92 +182,63 @@ class TagEnv(Env):
         self.state = state
 
     def move_opponent(self):
-        opp_pos = self.state.opponent_pos
-        actions = self._admissable_actions(self.state.agent_pos, opp_pos)
-        if np.random.binomial(1, self.move_prob):
-            move = np.random.choice(actions).value
-            if self.grid.is_inside(opp_pos + move):
-                self.state.opponent_pos = self.state.opponent_pos + move
-
+        opp_transition = self.oppTransitionDistribution(self.state)
+        opp_new_idx = np.random.choice(np.array(list(opp_transition.keys())), p=np.array(list(opp_transition.values())))
+        self.state.opponent_pos = self.grid.get_tag_coord(opp_new_idx)
 
     def _generate_legal(self):
         return list(range(self.action_space.n))
 
 
+    def getIndexForOppDist(self, opp_pos, dx, dy):
+        if self.grid.is_inside(opp_pos + Coord(dx, dy)):
+            return self.grid.get_index(opp_pos + Coord(dx, dy))
+        else:
+            return self.grid.get_index(opp_pos)
 
-    # def _local_move(self, state, last_action, last_ob):
-    #     if len(state.opponent_pos) > 0:
-    #         opp = np.random.randint(len(state.opponent_pos))
-    #     else:
-    #         return False
-    #
-    #     if state.opponent_pos[opp] == Coord(-1, -1):
-    #         return False
-    #     state.opponent_pos[opp] = self.grid.sample()
-    #     if last_ob != self.grid.get_index(state.agent_pos):
-    #         state.agent_pos = self.grid.get_tag_coord(last_ob)
-    #
-    #     ob = self._sample_ob(state, last_action)
-    #     return ob == last_ob
-
-    def oppTransitionDistribution(self, state):
+    def oppTransitionDistribution(self, tag_state):
         distribution = {}
-        tag_state = self.decode_state(state)
         rob_pos = tag_state.agent_pos
-        opp_pos = tag_state.opponent_pos[0]
+        opp_pos = tag_state.opponent_pos
         if rob_pos.x == opp_pos.x:
-            index = self.grid.get_index(opp_pos + Coord(1, 0)) if self.grid.is_inside(opp_pos + Coord(1, 0)) else self.grid.get_index(opp_pos)
-            distribution[index] += 0.2
+            index = self.getIndexForOppDist(opp_pos, 1, 0)
+            distribution[index] = distribution.get(index, 0) + 0.2
 
-            index = self.grid.get_index(opp_pos + Coord(-1, 0)) if self.grid.is_inside(opp_pos + Coord(-1, 0)) else self.grid.get_index(opp_pos)
-            distribution[index] += 0.2
+            index = self.getIndexForOppDist(opp_pos, -1, 0)
+            distribution[index] = distribution.get(index, 0) + 0.2
         else:
             dx = 1 if opp_pos.x > rob_pos.x else -1
-            index = self.grid.get_index(opp_pos + Coord(dx, 0)) if self.grid.is_inside(opp_pos + Coord(dx, 0)) else self.grid.get_index(opp_pos)
-            distribution[index] += 0.4
+            index = self.getIndexForOppDist(opp_pos, dx, 0)
+            distribution[index] = distribution.get(index, 0) + 0.4
 
         if rob_pos.y == opp_pos.y:
-            index = self.grid.get_index(opp_pos + Coord(0, 1)) if self.grid.is_inside(opp_pos + Coord(0, 1)) else self.grid.get_index(opp_pos)
-            distribution[index] += 0.2
+            index = self.getIndexForOppDist(opp_pos, 0, 1)
+            distribution[index] = distribution.get(index, 0) + 0.2
 
-            index = self.grid.get_index(opp_pos + Coord(0, -1)) if self.grid.is_inside(opp_pos + Coord(0, -1)) else self.grid.get_index(opp_pos)
-            distribution[index] += 0.2
+            index = self.getIndexForOppDist(opp_pos, 0, -1)
+            distribution[index] = distribution.get(index, 0) + 0.2
         else:
             dy = 1 if opp_pos.y > rob_pos.y else -1
-            index = self.grid.get_index(opp_pos + Coord(0, dy)) if self.grid.is_inside(opp_pos + Coord(0, dy)) else self.grid.get_index(opp_pos)
-            distribution[index] += 0.4
+            index = self.getIndexForOppDist(opp_pos, 0, dy)
+            distribution[index] = distribution.get(index, 0) + 0.4
 
-        distribution[self.grid.get_index(opp_pos)] += 0.2
+        index = self.grid.get_index(opp_pos)
+        distribution[index] = distribution.get(index, 0) + 0.2
 
-        return distribution
+        return {key: round(distribution[key], 1) for key in distribution}
 
-    def stateTransitionDistribution(self, state):
+    def stateTransitionDistribution(self, state_id, action):
+        tag_state = self.decode_state(state_id)
+        opp_distribution = self.oppTransitionDistribution(tag_state)
+        next_pos = tag_state.agent_pos + Moves.get_coord(action)
+        if self.grid.is_inside(next_pos):
+            tag_state.agent_pos = next_pos
+        rob_idx = self.grid.get_index(tag_state.agent_pos)
+        rob_opp_distribution = {}
+        for key in opp_distribution:
+            rob_opp_distribution[self.robOppIndexToStateInd(rob_idx, key)] = opp_distribution[key]
+        return rob_opp_distribution
 
-        opp_distribution = self.oppTransitionDistribution(state)
-
-
-
-    @staticmethod
-    def _admissable_actions(agent_pos, opp_pos):
-        actions = []
-        if opp_pos.x >= agent_pos.x:
-            actions.append(Moves.EAST)
-        if opp_pos.y >= agent_pos.y:
-            actions.append(Moves.NORTH)
-        if opp_pos.x <= agent_pos.x:
-            actions.append(Moves.WEST)
-        if opp_pos.y <= agent_pos.y:
-            actions.append(Moves.SOUTH)
-        if opp_pos.x == agent_pos.x and opp_pos.y > agent_pos.y:
-            actions.append(Moves.NORTH)
-        if opp_pos.y == agent_pos.y and opp_pos.x > agent_pos.x:
-            actions.append(Moves.EAST)
-        if opp_pos.x == agent_pos.x and opp_pos.y < agent_pos.y:
-            actions.append(Moves.SOUTH)
-        if opp_pos.y == agent_pos.y and opp_pos.x < agent_pos.x:
-            actions.append(Moves.WEST)
-        assert len(actions) > 0
-        return actions
 
 # add heuristcs to tag problem
 class TagState(object):
@@ -306,10 +258,11 @@ if __name__ == '__main__':
     # gui.render(action, env.tag_state)
     #
 
-
     legal_state = []
     for i in range(env.nS):
         state = env.decode_state(i)
+        env.stateTransitionDistribution(610, 2)
+        env.oppTransitionDistribution(env.decode_state(610))
         if env.grid.is_inside(state.agent_pos) & env.grid.is_inside(state.opponent_pos):
             legal_state.append(i)
 
@@ -318,8 +271,6 @@ if __name__ == '__main__':
         ind = env.encode_state(state)
         if i != ind:
             print("noooo")
-
-
 
     env.render()
     done = False
