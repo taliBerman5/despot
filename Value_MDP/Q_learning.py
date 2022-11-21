@@ -109,7 +109,7 @@ def simulate(env, Q_table):
         r = int(r)
         if r > 0:
             r = "+" + str(r)
-        print(str(counter) + ". state id", s, agent_position, opp_position, action, r)
+        print(str(counter) + ". state id", s, agent_position, opp_position, action_map[action], r)
         steps += 1
         counter += 1
 

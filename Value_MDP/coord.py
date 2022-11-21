@@ -33,6 +33,9 @@ class Grid(object):
         self.y_size = y_size
         self.n_tiles = self.x_size * self.y_size
         self.build_board()
+        self.num_cells = 29
+
+
     def __iter__(self):
         return iter(self.board)
 
@@ -56,17 +59,17 @@ class Grid(object):
         # self.board = np.asarray(self.board)
 
     def get_index(self, coord):
-        return self.x_size * coord.y + coord.x
+        return self.cells_.index(coord)
 
     def is_inside(self, coord):
         return coord.is_valid() and coord.x < self.x_size and coord.y < self.y_size
 
     def get_coord(self, idx):
-        assert 0 <= idx < self.n_tiles
+        assert 0 <= idx < self.num_cells
         return Coord(idx % self.x_size, idx // self.x_size)
 
     def sample(self):
-        return self.get_coord(np.random.randint(self.n_tiles))
+        return self.get_coord(np.random.randint(self.num_cells))
 
 
     @property
@@ -97,6 +100,9 @@ class Grid(object):
             return c2.x - c1.x
         else:
             raise NotImplementedError()
+
+
+
 
 
 class Moves(Enum):

@@ -38,31 +38,32 @@ class TagGrid(Grid):
         super().__init__(*board_size)
         # self.build_board(0)
         self.build_board()
+        self.num_cells = 29
+        self.cells_ = []
+        self.init_Cells()
+
 
     def sample(self):
         return self.get_tag_coord(np.random.randint(0, 29))
 
     def is_inside(self, coord):
-        if coord.y >= 2:
-            return coord.x >= 5 and coord.x < 8 and coord.y < 5
+        if coord.y <= 2:
+            return coord.x >= 5 and coord.x < 8 and coord.y >= 0
         else:
-            return coord.x >= 0 and coord.x < 10 and coord.y >= 0
+            return coord.x >= 0 and coord.x < 10 and coord.y < 5
+
+    def init_Cells(self):
+        for y in range(self.y_size):
+            for x in range(self.x_size):
+                if self.is_inside(Coord(x, y)):
+                    self.cells_.append(Coord(x, y))
 
     def get_tag_coord(self, idx):
-        assert idx >= 0 and idx < self.n_tiles
-        if idx < 20:
-            return Coord(idx % 10, idx // 10)
-        idx -= 20
-        return Coord(idx % 3 + 5, idx // 3 + 2)
+        if(idx == 29):
+            print("g")
+        assert idx >= 0 and idx < self.num_cells
+        return self.cells_[idx]
 
-    def get_index(self, coord):
-        # return self.x_size * coord.y + coord.x
-        assert coord.x >= 0 and coord.x < 10
-        assert coord.y >= 0 and coord.y < 5
-        if coord.y < 2:
-            return coord.y * 10 + coord.x
-        assert coord.x >= 5 and coord.x < 8
-        return 20 + (coord.y - 2) * 3 + coord.x - 5
 
     def is_corner(self, coord):
         if not self.is_inside(coord):
@@ -74,7 +75,7 @@ class TagGrid(Grid):
 
     @property
     def get_available_coord(self):
-        return [self.get_tag_coord(idx) for idx in range(self.n_tiles)]
+        return [self.get_tag_coord(idx) for idx in range(self.num_cells)]
 
 
 # grid = TagGrid((10, 5), obs_cells=29)
@@ -94,13 +95,21 @@ class TagEnv(Env):
         self.done = False
         self.state = self._get_init_state(False)
         self.last_action = 4
-        self.nS = 2500
+        self.nS = 841
+        self.rob_ = np.zeros(self.nS, dtype=np.int8)
+        self.opp_ = np.zeros(self.nS, dtype=np.int8)
 
     def reset(self):
         self.done = False
         self.time = 0
         self.last_action = 4
         self.state = self._get_init_state(False)
+        for rob in range(self.grid.num_cells):
+            for opp in range(self.grid.num_cells):
+                s = self.robOppIndexToStateInd(rob, opp)
+                self.rob_[s] = rob
+                self.opp_[s] = opp
+
         return self.state  # get state
 
     def seed(self, seed=None):
@@ -149,7 +158,13 @@ class TagEnv(Env):
             print(f'agent pos {agent_pos}, opponent pos {opponent_pos}, msg {msg}')
 
     def robOppIndexToStateInd(self, rob_idx, opp_idx):
-        return int(rob_idx * self.grid.n_tiles + opp_idx)
+        return int(rob_idx * self.grid.num_cells + opp_idx)
+
+    def stateIndexToOppIndex(self, idx):
+        return idx % self.grid.num_cells
+
+    def stateIndexToRobIndex(self, idx):
+        return idx // self.grid.num_cells
 
     def encode_state(self, state):  # TB
         s = np.zeros(2)
@@ -159,8 +174,10 @@ class TagEnv(Env):
         return self.robOppIndexToStateInd(s[0], s[1])
 
     def decode_state(self, state_id):  # TB
-        agent_idx = state_id // self.grid.n_tiles
-        opp_idx = state_id % self.grid.n_tiles
+        agent_idx = self.rob_[state_id]
+        opp_idx = self.opp_[state_id]
+        if agent_idx == 29 | opp_idx == 29:
+            print("H")
         tag_state = TagState(self.grid.get_tag_coord(agent_idx), self.grid.get_tag_coord(opp_idx))
         return tag_state
 
@@ -256,7 +273,7 @@ class TagState(object):
 
 if __name__ == '__main__':
     env = TagEnv()
-    # env.reset()
+    env.reset()
     # state = env.tag_state
     # gui = RobotGrid(start_coord=state.agent_pos, obj_coord=state.opponent_pos)
     # action = Action.sample()
@@ -267,8 +284,9 @@ if __name__ == '__main__':
     legal_state = []
     for i in range(env.nS):
         state = env.decode_state(i)
-        env.stateTransitionDistribution(610, 2)
-        env.oppTransitionDistribution(env.decode_state(610))
+        rob = env.rob_[i]
+        opp = env.opp_[i]
+        print(f'state {i} rob ind {rob} coord {env.grid.cells_[rob]} opp ind {opp} coord {env.grid.cells_[opp]}')
         if env.grid.is_inside(state.agent_pos) & env.grid.is_inside(state.opponent_pos):
             legal_state.append(i)
 
