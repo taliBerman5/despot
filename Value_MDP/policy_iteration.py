@@ -189,7 +189,7 @@ if __name__ == '__main__':
     check_state = [i for i in range(500)]
     # simulateRender(env, pai)
     print_value_opt(check_state)
-    value_v_simulate(pai, sim_len=90)
+    evaluate_v_by_simulate(pai, sim_len=90)
 
     for i in range(3):
         print("-----------------------------------------------------")
