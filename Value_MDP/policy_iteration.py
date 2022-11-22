@@ -1,9 +1,11 @@
+import json
+
 import Tag_env_mdp
 import numpy as np
 from numpy import linalg as LA
 import matplotlib.pyplot as plot
 
-gama = 0.95
+gamma = 0.95
 epsilon = 0.0001
 action = {0: "up", 1: "right", 2: "down", 3: "left", 4: "Tag"}
 end_states = []
@@ -48,7 +50,7 @@ def policy_eval(env, pai, V, Tr):
     while True:
         Vold = V.copy()
         for s in range(env.nS):
-            V[s] = Tr[s][pai[s]]["r"] + gama * V_next(V, Tr, s, pai[s])
+            V[s] = Tr[s][pai[s]]["r"] + gamma * V_next(V, Tr, s, pai[s])
         if LA.norm(V - Vold, np.inf) <= epsilon:
             break
 
@@ -60,9 +62,9 @@ def V_next(V, Tr, state, action):
 def policy_improve(env, pai, V, Tr):
     for s in range(env.nS):
         Ma = 0
-        Mv = Tr[s][Ma]["r"] + gama * V_next(V, Tr, s, Ma)
+        Mv = Tr[s][Ma]["r"] + gamma * V_next(V, Tr, s, Ma)
         for a in range(1, env.nA):
-            v = Tr[s][a]["r"] + gama * V_next(V, Tr, s, a)
+            v = Tr[s][a]["r"] + gamma * V_next(V, Tr, s, a)
             if v > Mv:
                 Ma = a
                 Mv = v
@@ -123,6 +125,25 @@ def valueOpt(V, s):
     return V[s]
 
 
+def evaluate_v_by_simulate(optimal_pai, sim_len):
+    env = Tag_env_mdp.TagEnv()
+    V = np.zeros(env.nS)
+    for state_id in range(env.nS):
+        env.reset()
+        env.state = env.decode_state(state_id)
+        s = state_id
+        for step in range(sim_len):
+            tag_state, r, done = env.step(optimal_pai[s])
+            s = env.encode_state(tag_state)
+            V[state_id] += (gamma ** step) * r
+
+            if done:
+                break
+    V_table = {s: V[s] for s in range(env.nS)}
+    with open('V_from_policyIteration_Tag.txt', 'w') as convert_file:
+        convert_file.write(json.dumps(V_table))
+
+
 def print_value_opt(check_state):
     print('\n')
     for i in range(500):
@@ -168,6 +189,7 @@ if __name__ == '__main__':
     check_state = [i for i in range(500)]
     # simulateRender(env, pai)
     print_value_opt(check_state)
+    value_v_simulate(pai, sim_len=90)
 
     for i in range(3):
         print("-----------------------------------------------------")
