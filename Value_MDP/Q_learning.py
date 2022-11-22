@@ -135,18 +135,16 @@ if __name__ == '__main__':
     # initialization
     env = Tag_env_mdp.TagEnv()
     env.render()
-    alpha_arr = [0.03, 0.05, 0.03, 0.1]
-    lamda_arr = [0.2, 0.1, 0.05, 0.1]
+    alpha = 0.01
     Q_table_saver = []
     policy_value_saver = []
 
-
-    Q_table, policy_value, policy_steps_value = Q_learning(env, epsilon, alpha_arr[0])
+    Q_table, policy_value, policy_steps_value = Q_learning(env, epsilon, alpha=alpha)
 
     plt.figure()
     plt.plot(policy_steps_value, policy_value, label='q-learning')
     plt.legend()
-    plt.title("Average Policy value of alpha:"+str(alpha_arr[0])+ "lambda:" + str(lamda_arr[0]))
+    plt.title("Average Policy value of alpha:"+str(alpha))
     plt.xlabel("steps")
     plt.ylabel("policy value")
     plt.show()
