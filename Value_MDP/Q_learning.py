@@ -10,7 +10,7 @@ random.seed(1)
 
 gamma = 0.95
 epsilon = 1
-steps_amount = 100000
+steps_amount = 500000
 steps_per_episode = 90
 num_of_simulates = 100
 
@@ -134,7 +134,6 @@ def simulateRender(env, Q_table):
 if __name__ == '__main__':
     # initialization
     env = Tag_env_mdp.TagEnv()
-    legal_states = env.legal_state_id()
     env.render()
     alpha_arr = [0.03, 0.05, 0.03, 0.1]
     lamda_arr = [0.2, 0.1, 0.05, 0.1]
@@ -152,7 +151,7 @@ if __name__ == '__main__':
     plt.ylabel("policy value")
     plt.show()
 
-    V_table = {s: np.max(Q_table[s]) for s in legal_states}
+    V_table = {s: np.max(Q_table[s]) for s in range(env.nS)}
 
     with open('V_from_Q_learning_Tag.txt', 'w') as convert_file:
         convert_file.write(json.dumps(V_table))

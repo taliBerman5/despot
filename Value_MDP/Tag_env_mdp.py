@@ -59,8 +59,6 @@ class TagGrid(Grid):
                     self.cells_.append(Coord(x, y))
 
     def get_tag_coord(self, idx):
-        if(idx == 29):
-            print("g")
         assert idx >= 0 and idx < self.num_cells
         return self.cells_[idx]
 
@@ -176,8 +174,6 @@ class TagEnv(Env):
     def decode_state(self, state_id):  # TB
         agent_idx = self.rob_[state_id]
         opp_idx = self.opp_[state_id]
-        if agent_idx == 29 | opp_idx == 29:
-            print("H")
         tag_state = TagState(self.grid.get_tag_coord(agent_idx), self.grid.get_tag_coord(opp_idx))
         return tag_state
 
@@ -255,14 +251,6 @@ class TagEnv(Env):
             rob_opp_distribution[self.robOppIndexToStateInd(rob_idx, key)] = opp_distribution[key]
         return rob_opp_distribution
 
-    def legal_state_id(self):
-        legal_state = []
-        for i in range(self.nS):
-            state = self.decode_state(i)
-            if self.grid.is_inside(state.agent_pos) & self.grid.is_inside(state.opponent_pos):
-                legal_state.append(i)
-        return legal_state
-
 
 # add heuristcs to tag problem
 class TagState(object):
@@ -302,12 +290,6 @@ if __name__ == '__main__':
     while not done:
         action = np.random.choice(env._generate_legal())
         state, rw, done = env.step(action)
-        # ind = env.encode_state(state)
-        # s = env.decode_state(ind)
-        # print(f'real {state.agent_pos} : {state.opponent_pos}, me - {s.agent_pos} : {s.opponent_pos}')
-        # if (state.agent_pos != s.agent_pos) | (state.opponent_pos[0] != s.opponent_pos[0]):
-        #     print("noooooooooooooooooo")
-        # env._set_state(info['state'])
         env.render()
         r += rw
     print('done, r {}'.format(r))

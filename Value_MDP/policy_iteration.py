@@ -13,13 +13,13 @@ np.random.seed(1)
 
 
 # reward are deterministic for state, transition is not
-def explor_Tr(env, legal_states):
+def explor_Tr(env):
     """
     :param env: the environment by the convention of the open AI
     :return: transition function of the domain, includes : reward, transition by action
     """
     Tr = {}
-    for s in legal_states:
+    for s in range(env.nS):
         Tr[s] = {}
         for a in range(env.nA):
             Tr[s][a] = {"s'": -1, "r": -100}
@@ -34,8 +34,8 @@ def explor_Tr(env, legal_states):
     return Tr
 
 
-def init_start_states(env, legal_states):
-    for s in legal_states:
+def init_start_states(env):
+    for s in range(env.nS):
         tag_state = env.decode_state(s)
         agent_pos = tag_state.agent_pos
         opp_pos = tag_state.opponent_pos
@@ -43,11 +43,11 @@ def init_start_states(env, legal_states):
             start_states.append(s)
 
 
-def policy_eval(pai, V, Tr, legal_states):
+def policy_eval(env, pai, V, Tr):
     # value calculation for V
     while True:
         Vold = V.copy()
-        for s in legal_states:
+        for s in range(env.nS):
             V[s] = Tr[s][pai[s]]["r"] + gama * V_next(V, Tr, s, pai[s])
         if LA.norm(V - Vold, np.inf) <= epsilon:
             break
@@ -57,8 +57,8 @@ def V_next(V, Tr, state, action):
     return sum([V[s_next] * Tr[state][action]["s'"][s_next] for s_next in Tr[state][action]["s'"]])
 
 
-def policy_improve(env, pai, V, Tr, legal_states):
-    for s in legal_states:
+def policy_improve(env, pai, V, Tr):
+    for s in range(env.nS):
         Ma = 0
         Mv = Tr[s][Ma]["r"] + gama * V_next(V, Tr, s, Ma)
         for a in range(1, env.nA):
@@ -130,12 +130,12 @@ def print_value_opt(check_state):
     print('\n')
 
 
-def v_eval_overPi(pai, Tr, V, legal_states):
+def v_eval_overPi(env, pai, Tr, V):
     acc = 0
     v = V.copy()
     while True:
         vold = v.copy()
-        policy_eval(pai, v, Tr, legal_states)
+        policy_eval(env, pai, v, Tr)
         if LA.norm(v - vold, np.inf) <= epsilon:
             break
 
@@ -147,9 +147,8 @@ def v_eval_overPi(pai, Tr, V, legal_states):
 if __name__ == '__main__':
     # initialization
     env = Tag_env_mdp.TagEnv()
-    legal_states = env.legal_state_id()
-    Tr = explor_Tr(env, legal_states)
-    init_start_states(env, legal_states)
+    Tr = explor_Tr(env)
+    init_start_states(env)
     pai = np.asarray([env.action_space.sample() for i in range(env.nS)])
     V = np.zeros(env.nS)
     env.reset()
@@ -157,13 +156,13 @@ if __name__ == '__main__':
 
     # Policy Iteration until converges
     while True:
-        policy_eval(pai, V, Tr, legal_states)
-        pai_tag = policy_improve(env, np.array(pai, copy=True), V, Tr, legal_states)
+        policy_eval(env, pai, V, Tr)
+        pai_tag = policy_improve(env, np.array(pai, copy=True), V, Tr)
         if LA.norm(pai - pai_tag, np.inf) == 0:
             break
         pai = pai_tag
 
-        dic_R_v0_mean.append(v_eval_overPi(pai, Tr, V, legal_states))
+        dic_R_v0_mean.append(v_eval_overPi(env, pai, Tr, V))
 
     plotV(dic_R_v0_mean)
     check_state = [i for i in range(500)]
