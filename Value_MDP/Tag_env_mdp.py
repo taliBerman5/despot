@@ -12,15 +12,15 @@ np.random.seed(1)
 
 def action_to_str(action):
     if action == 0:
-        return "up"
+        return "North"
     elif action == 1:
-        return "right"
+        return "East"
     elif action == 2:
-        return "down"
+        return "South"
     elif action == 3:
-        return "left"
+        return "West"
     elif action == 4:
-        return "tag"
+        return "Tag"
     else:
         raise NotImplementedError()
 
@@ -240,15 +240,19 @@ class TagEnv(Env):
         return {key: round(distribution[key], 1) for key in distribution}
 
     def stateTransitionDistribution(self, state_id, action):
-        tag_state = self.decode_state(state_id)
-        opp_distribution = self.oppTransitionDistribution(tag_state)
-        next_pos = tag_state.agent_pos + Moves.get_coord(action)
-        if self.grid.is_inside(next_pos):
-            tag_state.agent_pos = next_pos
-        rob_idx = self.grid.get_index(tag_state.agent_pos)
         rob_opp_distribution = {}
-        for key in opp_distribution:
-            rob_opp_distribution[self.robOppIndexToStateInd(rob_idx, key)] = opp_distribution[key]
+        tag_state = self.decode_state(state_id)
+        if (self.grid.get_index(tag_state.agent_pos) == self.grid.get_index(tag_state.opponent_pos)) & (action == 4):
+            rob_opp_distribution[state_id] = 1
+        else:
+            opp_distribution = self.oppTransitionDistribution(tag_state)
+            next_pos = tag_state.agent_pos + Moves.get_coord(action)
+            if self.grid.is_inside(next_pos):
+                tag_state.agent_pos = next_pos
+            rob_idx = self.grid.get_index(tag_state.agent_pos)
+
+            for key in opp_distribution:
+                rob_opp_distribution[self.robOppIndexToStateInd(rob_idx, key)] = opp_distribution[key]
         return rob_opp_distribution
 
 
@@ -268,6 +272,33 @@ if __name__ == '__main__':
     # env.step(action=action)
     # gui.render(action, env.tag_state)
     #
+    with open('state_dist.txt', 'w') as file:
+
+        for a in range(env.nA):
+            for s in range(env.nS):
+                dist = env.stateTransitionDistribution(s, a)
+                for i in dist:
+                    file.write(f'T: {action_to_str(a)} : s{s} : s{i} {dist[i]}\n')
+
+
+    with open('reward.txt', 'w') as file:
+        for s in range(env.nS):
+            tag_state = env.decode_state(s)
+            if env.grid.get_index(tag_state.agent_pos) == env.grid.get_index(tag_state.opponent_pos):
+                file.write(f'R: Tag : s{s} : * : * 10.000000\n')
+
+
+    with open('obs.txt', 'w') as file:
+        for s in range(env.nS):
+            tag_state = env.decode_state(s)
+            if env.grid.get_index(tag_state.agent_pos) == env.grid.get_index(tag_state.opponent_pos):
+                file.write(f'O: * : s{s} : {29} 1.000000\n')
+            else:
+                file.write(f'O: * : s{s} : {env.grid.get_index(tag_state.agent_pos)} 1.000000\n')
+
+
+
+
 
     legal_state = []
     for i in range(env.nS):

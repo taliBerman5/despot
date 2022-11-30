@@ -139,9 +139,12 @@ def evaluate_v_by_simulate(optimal_pai, sim_len):
 
             if done:
                 break
-    V_table = {s: V[s] for s in range(env.nS)}
-    with open('V_from_policyIteration_Tag.txt', 'w') as convert_file:
-        convert_file.write(json.dumps(V_table))
+    # V_table = {s: V[s] for s in range(env.nS)}
+    # with open('V_from_policyIteration_Tag.txt', 'w') as convert_file:
+    #     convert_file.write(json.dumps(V_table))
+
+    np.savetxt('V_from_policyIteration_Tag.txt', V, delimiter=',', fmt='%.3f')
+
 
 
 def print_value_opt(check_state):
@@ -191,6 +194,6 @@ if __name__ == '__main__':
     print_value_opt(check_state)
     evaluate_v_by_simulate(pai, sim_len=90)
 
-    for i in range(3):
+    for i in range(10):
         print("-----------------------------------------------------")
         simulate(env, pai)

@@ -149,10 +149,13 @@ if __name__ == '__main__':
     plt.ylabel("policy value")
     plt.show()
 
-    V_table = {s: np.max(Q_table[s]) for s in range(env.nS)}
+    # V_table = {s: np.max(Q_table[s]) for s in range(env.nS)}
+    #
+    # with open('V_from_Q_learning_Tag.txt', 'w') as convert_file:
+    #     convert_file.write(json.dumps(V_table))
 
-    with open('V_from_Q_learning_Tag.txt', 'w') as convert_file:
-        convert_file.write(json.dumps(V_table))
+    V = np.asarray([np.max(Q_table[s]) for s in range(env.nS)])
+    np.savetxt('V_from_Q_learning_Tag.txt', V, delimiter=',', fmt='%.3f')
 
     for i in range(10):
         simulate(env, Q_table)
